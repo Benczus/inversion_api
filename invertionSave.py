@@ -396,10 +396,10 @@ with open('after.txt', 'w') as f:
     for dataframe in df_list:
         print(dataframe.describe(), file=f)
 
-model_list=create_ANN_list()
-with open("model_list", "wb") as fp:
-     pickle.dump(model_list, fp)
-        
+#model_list=create_ANN_list()
+#with open("model_list", "wb") as fp:
+#     pickle.dump(model_list, fp)
+
 with open("model_list", "rb") as fp:  
         model_list = pickle.load(fp)
 
