@@ -2,16 +2,17 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor
 import datetime
 
-from main import setup_logger
+from util import setup_logger
 
 current_datetime = datetime.datetime.now()
 ann_logger = setup_logger('ann_training',
-                      "ann_training_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
+                      "log/ann_training_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
                                                             current_datetime.day,
                                                             current_datetime.hour))
 
 
 def create_ANN_list(df_list, target_list):
+    ann_logger.info("Started create_ANN_list method")
     ANN_List = []
     for (testDataFrame, target) in zip(df_list, target_list):
         x_train, x_test, y_train, y_test = train_test_split(testDataFrame, target)
@@ -25,4 +26,5 @@ def create_ANN_list(df_list, target_list):
         model.fit(x_train, y_train)
         ANN_List.append(model)
         print(model.score(x_test, y_test))
+    ann_logger.info("Done create_ANN_list method")
     return ANN_List

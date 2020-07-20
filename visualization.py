@@ -1,16 +1,17 @@
 import matplotlib.pyplot as plt
 import datetime
 
-from main import setup_logger
+from util import setup_logger
 
 current_datetime = datetime.datetime.now()
-vis_logger = setup_logger('ga_invert',
-                      "ga_invert_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
+vis_logger = setup_logger('visualization',
+                      "log/visual_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
                                                          current_datetime.day,
                                                          current_datetime.hour))
 
 
 def plot_inverted(dataset ,dataset_unscaled, dataset_inverted, DESIRED_OUTPUT, OUTPUT_TOLERANCE ):
+    vis_logger.info("Started plot_inverted method")
     dataset_original = dataset_unscaled.copy().values.tolist();
     dataset_original_df = dataset_unscaled.copy()
     fig, (ax1, ax2, ax3) = plt.subplots(ncols=3, nrows=1, figsize=(20, 6))
@@ -53,3 +54,4 @@ def plot_inverted(dataset ,dataset_unscaled, dataset_inverted, DESIRED_OUTPUT, O
     ax3.set_ylabel("Y")
     plt.savefig('coordinatesinverted.pdf')
     plt.show()
+    vis_logger.info("Done plot_inverted method")

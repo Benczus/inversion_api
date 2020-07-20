@@ -1,11 +1,9 @@
+import datetime
 import pickle
-import logging
 import numpy as np
 import pandas as pd
 from deap import base
 from sklearn.model_selection import train_test_split
-import datetime
-from datetime import date
 import GA_inversion
 import util
 
@@ -13,38 +11,18 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 dataset = pd.read_csv("dataset.csv", sep=";")
-logging.basicConfig(filename='example.log',level=logging.DEBUG)
-
-
-LOG_FILE_ONE = "/var/log/one.log"
-LOG_FILE_TWO = "/var/log/two.log"
-
-
-def setup_logger(logger_name, log_file, level=logging.INFO):
-    log_setup = logging.getLogger(logger_name)
-    formatter = logging.Formatter('%(levelname)s: %(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-    fileHandler = logging.FileHandler(log_file, mode='a')
-    fileHandler.setFormatter(formatter)
-    streamHandler = logging.StreamHandler()
-    streamHandler.setFormatter(formatter)
-    log_setup.setLevel(level)
-    log_setup.addHandler(fileHandler)
-    log_setup.addHandler(streamHandler)
-
-
-def logger(msg, level, logfile):
-    if logfile == 'one': log = logging.getLogger('log_one')
-    if logfile == 'two': log = logging.getLogger('log_two')
-    if level == 'info': log.info(msg)
-    if level == 'warning': log.warning(msg)
-    if level == 'error': log.error(msg)
-
+current_datetime = datetime.datetime.now()
+logger = util.setup_logger('main',
+                           "log/main_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
+                                                             current_datetime.day, current_datetime.hour))
 
 def invert_all(df_list, df_list_unscaled, target_list, model_list, scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
                OUTPUT_TOLERANCE):
+
+    logger.info("Started invert_all method")
     inverted_list = []
     for index, (testDataFrame, target) in enumerate(zip(df_list, target_list)):
-        print(index)
+        logger.debug("Current index:{}".format(index))
         x_train, x_test, y_train, y_test = train_test_split(testDataFrame, target)
         inverter = GA_inversion.GA_Inverter(0, base.Toolbox(), x_test.iloc[0].size, len(x_test.index), 10,
                                             df_list_unscaled, scaler_list)
@@ -61,18 +39,20 @@ def invert_all(df_list, df_list_unscaled, target_list, model_list, scaler_list, 
         dataset_inverted['target'] = pd.Series(target_list[index])
         dataset_inverted = scaler_list[index].inverse_transform(dataset_inverted)
         inverted_list.append(dataset_inverted)
+    logger.info("Done invert_all method")
     return inverted_list
 
 
-def invert(index, df_list_unscaled, scaler_list, df, target, model, scaler, CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
+def invert(index, target,  df_list_unscaled, scaler_list, df_list, target_list, model_list,  CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
            OUTPUT_TOLERANCE):
-    x_train, x_test, y_train, y_test = train_test_split(df, target)
+    logger.info("Started invert method")
+    x_train, x_test, y_train, y_test = train_test_split(df_list[index], target)
     inverter = GA_inversion.GA_Inverter(0, base.Toolbox(), x_test.iloc[0].size, len(x_test.index), 10, df_list_unscaled,
                                         scaler_list)
     inverter.initialize_invertion_functions()
     y_pred = model_list[index].predict(x_test)
-    print(y_pred)
-    valid_pop = inverter.generate_valid_pop(index, y_pred, model, scaler, CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
+    logger.debug("Predicted y value:{}".format(y_pred))
+    valid_pop = inverter.generate_valid_pop(index, y_pred, model_list[index], scaler_list[index], CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
                                             OUTPUT_TOLERANCE)
     dataset_inverted = df_list[index].copy();
     dataset_original = df_list_unscaled[index].copy().values.tolist();
@@ -82,28 +62,36 @@ def invert(index, df_list_unscaled, scaler_list, df, target, model, scaler, CXPB
         dataset_inverted.loc[ind] = valid_pop[ind]
     dataset_inverted['target'] = pd.Series(target_list[index])
     dataset_inverted = scaler_list[index].inverse_transform(dataset_inverted)
+    logger.info("Done invert method")
     return dataset_inverted
 
 
-def get_output_list(list_of_inputs,  df_list_unscaled, scaler_list, CXPB, MUTPB, NGEN, OUTPUT_TOLERANCE):
+def get_output_list(list_of_inputs,  target_list, df_list, df_list_unscaled,  model_list, scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE):
+    logger.info("Started get_output_list method")
     predicted_outputs_list = []
     for inputs_by_time in list_of_inputs:
-        predicted_outputs_list.append(predict_position(inputs_by_time,  df_list_unscaled, scaler_list, CXPB, MUTPB, NGEN, OUTPUT_TOLERANCE))
+        predicted_outputs_list.append(predict_position(inputs_by_time,  target_list, df_list, df_list_unscaled, model_list, scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE))
+    logger.info("Done get_output_list method")
     return predicted_outputs_list
 
 
-def predict_position(inputs,  df_list_unscaled, scaler_list, CXPB, MUTPB, NGEN, OUTPUT_TOLERANCE):
+def predict_position(inputs,  target_list, df_list, df_list_unscaled, model_list, scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE):
+    logger.info("Started predict_position method")
+
     output_dict = {}
     for RSSI, value in inputs.items():
         for index, target in enumerate(target_list):
             if target.name == RSSI:
-                output = invert(index, df_list[index],  df_list_unscaled, scaler_list, target_list[index], model_list[index], scaler_list[index], CXPB,
-                                MUTPB, NGEN, value, OUTPUT_TOLERANCE)
+                output = invert(index,  target,  df_list_unscaled, scaler_list, df_list, target_list, model_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
+           OUTPUT_TOLERANCE)
                 output_dict.update({RSSI: output})
+    logger.info("Done predict_position method")
     return output_dict
 
 
-def predict_coordinates(inverted_positions):
+def predict_coordinates(inverted_positions, selected_features):
+    logger.info("Started predict_coordinates method")
+
     gen_x_coord = []
     gen_y_coord = []
     for values in inverted_positions.values():
@@ -112,17 +100,19 @@ def predict_coordinates(inverted_positions):
             gen_y_coord.append(g_val[1])
     gen_x_coord = pd.Series(gen_x_coord)
     gen_y_coord = pd.Series(gen_y_coord)
+    logger.info("Done predict_coordinates method")
     return (np.average(gen_x_coord[gen_x_coord < np.max(selected_features["pos_x"])]),
             np.average(gen_y_coord[gen_y_coord < np.max(selected_features["pos_y"])]))
 
 
 def calculate_error(predicted_cooridnates, actual_coordinates):
+    logger.info(" Called calculate_error method")
     return np.array(((predicted_cooridnates - actual_coordinates) ** 2)).mean()
 
 
 def create_inputs_by_index(selected_features, df_list_unscaled):
+    logger.info("Started create_inputs_by_index method")
     list_of_inputs = []
-
     for index in selected_features.index:
         inputs_list_by_time = {}
         for df in df_list_unscaled:
@@ -131,40 +121,23 @@ def create_inputs_by_index(selected_features, df_list_unscaled):
                 if df_mod.index[i] == index:
                     inputs_list_by_time.update({df_mod.columns[0]: df_mod.iloc[0, 0]})
         list_of_inputs.append(inputs_list_by_time)
-
+    logger.info("Done create_inputs_by_index method")
     return list_of_inputs
 
 
 def create_coordiantes_by_index(selected_features):
+    logger.info("Started create_coordiantes_by_index method")
     actual_coordinates = []
     for index in selected_features.index:
         actual_coordinates.append([selected_features.iloc[index][0], selected_features.iloc[index][1]])
+    logger.info("Done create_coordiantes_by_index method")
     return actual_coordinates
 
 
-def setup_logger(logger_name, log_file, level=logging.INFO):
-    logger = logging.getLogger(logger_name)
-    logger.setLevel(logging.DEBUG)
-    # create file handler which logs even debug messages
-    fh = logging.FileHandler(log_file)
-    fh.setLevel(logging.DEBUG)
-    # create console handler with a higher log level
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.ERROR)
-    # create formatter and add it to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    fh.setFormatter(formatter)
-    ch.setFormatter(formatter)
-    # add the handlers to the logger
-    logger.addHandler(fh)
-    logger.addHandler(ch)
-    return logger
+
 
 
 def main():
-    current_datetime = datetime.datetime.now()
-    logger= setup_logger('main',
-                 "main_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month, current_datetime.day, current_datetime.hour))
 
 
     selected_features = util.transform_data(dataset)
@@ -182,21 +155,21 @@ def main():
             df_list[i][:] = scaler_list[i].transform(df_list[i][:])
             target_list.append(df_list[i].pop(df_list[i].columns[-1]))
             i = i + 1
-    with open('before.txt', 'w') as f:
-        for dataframe in df_list:
-            print(dataframe.describe(), file=f)
+
+    for dataframe in df_list:
+        logger.debug("{}".format(dataframe.describe()))
 
     for x in range(0, 2):
         for index, dataframe in enumerate(df_list):
             if (dataframe.size < 100):
-                print(index)
+                logger.debug("Deleted index:{}".format(index))
                 del df_list[index]
                 del target_list[index]
                 del scaler_list[index]
                 del df_list_unscaled[index]
-    with open('after.txt', 'w') as f:
-        for dataframe in df_list:
-            print(dataframe.describe(), file=f)
+
+    for dataframe in df_list:
+        logger.debug("{}".format(dataframe.describe()))
 
     # Trained ANN models are saved in "model_list" file.
     # model_list=create_ANN_list(df_list, target_list)
@@ -225,7 +198,7 @@ def main():
     CXPB, MUTPB, NGEN = 0.5, 0.1, 1000
     DESIRED_OUTPUT = -80
     OUTPUT_TOLERANCE = 2
-    output_list = get_output_list(list_of_inputs, df_list_unscaled, scaler_list, CXPB, MUTPB, NGEN, OUTPUT_TOLERANCE)
+    output_list = get_output_list(list_of_inputs, target_list, df_list, df_list_unscaled, model_list, scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE)
 
     with open("invertedpos_list", "wb") as fp:
         pickle.dump(output_list, fp)
