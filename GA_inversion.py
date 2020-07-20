@@ -4,6 +4,14 @@ import numpy as np
 from deap import base
 from deap import creator
 from deap import tools
+import datetime
+
+from main import setup_logger
+
+current_datetime = datetime.datetime.now()
+ga_logger = setup_logger('main',
+                      "main_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month, current_datetime.day,
+                                                    current_datetime.hour))
 
 
 class GA_Inverter():
@@ -15,8 +23,8 @@ class GA_Inverter():
         self.IND_SIZE = ind_size
         self.POP_SIZE = pop_size
         self.elite_count = elite_count
-        self.df_list_unscaled=df_list_unscaled
-        self.scaler_list=scaler_list
+        self.df_list_unscaled = df_list_unscaled
+        self.scaler_list = scaler_list
 
     def creator_function(self):
         return self.creator.Individual(self.generate_individual())
@@ -110,5 +118,3 @@ class GA_Inverter():
                 ind.fitness.values = fit
 
         return [ind for ind in self.pop if ind.fitness.values[0] < 2]
-
-

@@ -1,6 +1,14 @@
 import numpy as np
 import pandas as pd
 from sklearn import preprocessing
+import datetime
+
+from main import setup_logger
+
+current_datetime = datetime.datetime.now()
+util_logger = setup_logger('util',
+                           "util_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
+                                                         current_datetime.day, current_datetime.hour))
 
 
 def _calculate_spherical_coordinates(dataset):
@@ -40,12 +48,12 @@ def get_AP_scaler(AP_df):
 
 
 def transform_data(dataset):
-    selected_features= dataset.iloc[:,14:45]
-    selected_features.insert(0,'pos_x', dataset["Position X"])
-    selected_features.insert(1,'pos_y', dataset["Position Y"])
-    selected_features.insert(2,'pos_z', dataset["Position Z"])
+    selected_features = dataset.iloc[:, 14:45]
+    selected_features.insert(0, 'pos_x', dataset["Position X"])
+    selected_features.insert(1, 'pos_y', dataset["Position Y"])
+    selected_features.insert(2, 'pos_z', dataset["Position Z"])
     selected_features[selected_features.pos_z != 0]
-    synthetic_features=create_synthetic_features(dataset)
+    synthetic_features = create_synthetic_features(dataset)
     selected_features.insert(3, "x_y", synthetic_features["x_y"])
     selected_features.insert(4, "x_y_z", synthetic_features["x_y_z"])
     selected_features.insert(5, "r", synthetic_features["r"])
