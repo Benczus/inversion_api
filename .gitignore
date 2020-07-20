@@ -9,3 +9,5 @@ testdir/.idea/workspace.xml
 .idea/testdir.iml
 .idea/vcs.xml
 .idea/workspace.xml
+.idea/
+log/
