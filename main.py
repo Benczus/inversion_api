@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from deap import base
 from sklearn.model_selection import train_test_split
-import GA_inversion
+import GA_inverter
 import util
 
 pd.set_option('display.max_rows', 500)
@@ -24,15 +24,15 @@ def invert_all(df_list, df_list_unscaled, target_list, model_list, scaler_list, 
     for index, (testDataFrame, target) in enumerate(zip(df_list, target_list)):
         logger.debug("Current index:{}".format(index))
         x_train, x_test, y_train, y_test = train_test_split(testDataFrame, target)
-        inverter = GA_inversion.GA_Inverter(0, base.Toolbox(), x_test.iloc[0].size, len(x_test.index), 10,
+        inverter = GA_inverter.GA_Inverter(0, base.Toolbox(), x_test.iloc[0].size, len(x_test.index), 10,
                                             df_list_unscaled, scaler_list)
         inverter.initialize_invertion_functions()
         y_pred = model_list[index].predict(x_test)
-        valid_pop = inverter.generate_valid_pop(index, y_pred, model_list[index], scaler_list[index], CXPB, MUTPB, NGEN,
-                                                DESIRED_OUTPUT, OUTPUT_TOLERANCE)
+        valid_pop = inverter._generate_valid_pop(index, y_pred, model_list[index], scaler_list[index], CXPB, MUTPB, NGEN,
+                                                 DESIRED_OUTPUT, OUTPUT_TOLERANCE)
         dataset_inverted = df_list[index].copy();
-        dataset_original = df_list_unscaled[index].copy().values.tolist();
-        dataset_original_df = df_list_unscaled[index].copy()
+       # dataset_original = df_list_unscaled[index].copy().values.tolist();
+       # dataset_original_df = df_list_unscaled[index].copy()
         dataset_inverted.drop(dataset_inverted.index, inplace=True)
         for ind, row in enumerate(valid_pop):
             dataset_inverted.loc[ind] = valid_pop[ind]
@@ -42,28 +42,6 @@ def invert_all(df_list, df_list_unscaled, target_list, model_list, scaler_list, 
     logger.info("Done invert_all method")
     return inverted_list
 
-
-def invert(index, target,  df_list_unscaled, scaler_list, df_list, target_list, model_list,  CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
-           OUTPUT_TOLERANCE):
-    logger.info("Started invert method")
-    x_train, x_test, y_train, y_test = train_test_split(df_list[index], target)
-    inverter = GA_inversion.GA_Inverter(0, base.Toolbox(), x_test.iloc[0].size, len(x_test.index), 10, df_list_unscaled,
-                                        scaler_list)
-    inverter.initialize_invertion_functions()
-    y_pred = model_list[index].predict(x_test)
-    logger.debug("Predicted y value:{}".format(y_pred))
-    valid_pop = inverter.generate_valid_pop(index, y_pred, model_list[index], scaler_list[index], CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
-                                            OUTPUT_TOLERANCE)
-    dataset_inverted = df_list[index].copy();
-    dataset_original = df_list_unscaled[index].copy().values.tolist();
-    dataset_original_df = df_list_unscaled[index].copy()
-    dataset_inverted.drop(dataset_inverted.index, inplace=True)
-    for ind, row in enumerate(valid_pop):
-        dataset_inverted.loc[ind] = valid_pop[ind]
-    dataset_inverted['target'] = pd.Series(target_list[index])
-    dataset_inverted = scaler_list[index].inverse_transform(dataset_inverted)
-    logger.info("Done invert method")
-    return dataset_inverted
 
 
 def get_output_list(list_of_inputs,  target_list, df_list, df_list_unscaled,  model_list, scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE):
@@ -75,15 +53,20 @@ def get_output_list(list_of_inputs,  target_list, df_list, df_list_unscaled,  mo
     return predicted_outputs_list
 
 
-def predict_position(inputs,  target_list, df_list, df_list_unscaled, model_list, scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE):
+def predict_position(inputs, target_list, df_list, df_list_unscaled, model_list, scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE):
     logger.info("Started predict_position method")
-
     output_dict = {}
     for RSSI, value in inputs.items():
         for index, target in enumerate(target_list):
             if target.name == RSSI:
-                output = invert(index,  target,  df_list_unscaled, scaler_list, df_list, target_list, model_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
-           OUTPUT_TOLERANCE)
+                x_train, x_test, y_train, y_test = train_test_split(df_list[index], target)
+                inverter = GA_inverter.GA_Inverter(index, base.Toolbox(), x_test.iloc[0].size, len(x_test.index), 10,
+                                                   df_list_unscaled,
+                                                   scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE)
+                inverter.initialize_invertion_functions()
+                y_pred = model_list[index].predict(x_test)
+                logger.debug("Predicted y value:{}".format(y_pred))
+                output = inverter.invert(index, inverter, y_pred,  scaler_list, df_list, target_list, model_list)
                 output_dict.update({RSSI: output})
     logger.info("Done predict_position method")
     return output_dict

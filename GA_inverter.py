@@ -1,10 +1,13 @@
 import math
 import random
 import numpy as np
+import pandas as pd
 from deap import base
 from deap import creator
 from deap import tools
 import datetime
+
+from sklearn.model_selection import train_test_split
 
 from util import setup_logger
 
@@ -16,7 +19,8 @@ ga_logger = setup_logger('ga_invert',
 
 class GA_Inverter():
 
-    def __init__(self, index, toolbox, ind_size, pop_size, elite_count, df_list_unscaled, scaler_list):
+    def __init__(self, index, toolbox, ind_size, pop_size, elite_count, df_list_unscaled, scaler_list,  CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
+           OUTPUT_TOLERANCE):
         ga_logger.info("Instantiated GA_Inverter method")
         self.creator = creator
         self.index = index
@@ -26,11 +30,16 @@ class GA_Inverter():
         self.elite_count = elite_count
         self.df_list_unscaled = df_list_unscaled
         self.scaler_list = scaler_list
+        self.CXPB=CXPB;
+        self.MUTPB = MUTPB;
+        self.NGEN = NGEN;
+        self.DESIRED_OUTPUT = DESIRED_OUTPUT;
+        self.OUTPUT_TOLERANCE= OUTPUT_TOLERANCE
 
     def creator_function(self):
-        return self.creator.Individual(self.generate_individual())
+        return self.creator.Individual(self._generate_individual())
 
-    def generate_individual(self):
+    def _generate_individual(self):
         ga_logger.info("Started generate_individual method")
         x = random.randint(math.floor(self.df_list_unscaled[self.index].min()[0]),
                            math.floor(self.df_list_unscaled[self.index].max()[0]))
@@ -74,8 +83,8 @@ class GA_Inverter():
         self.toolbox.register("evaluate", self.evaluate)
         ga_logger.info("Done initialize_invertion_functions method")
 
-    def generate_valid_pop(self, index, y_predict, model, scaler, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE,
-                           ELIT_CNT=10):
+    def _generate_valid_pop(self, index, y_predict, model, scaler, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE,
+                            ELIT_CNT=10):
         ga_logger.info("Started generate_valid_pop method")
         fitnesses = list()
         # evaluation
@@ -124,3 +133,19 @@ class GA_Inverter():
                 ind.fitness.values = fit
         ga_logger.info("Done generate_valid_pop method")
         return [ind for ind in self.pop if ind.fitness.values[0] < 2]
+
+    def invert(self, index, inverter, y_pred,  scaler_list, df_list, target_list, model_list):
+        ga_logger.info("Started invert method")
+        valid_pop = inverter._generate_valid_pop(index, y_pred, model_list[index], scaler_list[index], self.CXPB, self.MUTPB,
+                                                 self.NGEN, self.DESIRED_OUTPUT, self.OUTPUT_TOLERANCE)
+        dataset_inverted = df_list[index].copy();
+       # dataset_original = df_list_unscaled[index].copy().values.tolist();
+       # dataset_original_df = df_list_unscaled[index].copy()
+        dataset_inverted.drop(dataset_inverted.index, inplace=True)
+        for ind, row in enumerate(valid_pop):
+            dataset_inverted.loc[ind] = valid_pop[ind]
+        dataset_inverted['target'] = pd.Series(target_list[index])
+        dataset_inverted = scaler_list[index].inverse_transform(dataset_inverted)
+        ga_logger.info("Done invert method")
+        return dataset_inverted
+
