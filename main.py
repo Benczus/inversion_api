@@ -16,31 +16,6 @@ logger = util.setup_logger('main',
                            "log/main_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
                                                              current_datetime.day, current_datetime.hour))
 
-def invert_all(df_list, df_list_unscaled, target_list, model_list, scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
-               OUTPUT_TOLERANCE):
-
-    logger.info("Started invert_all method")
-    inverted_list = []
-    for index, (testDataFrame, target) in enumerate(zip(df_list, target_list)):
-        logger.debug("Current index:{}".format(index))
-        x_train, x_test, y_train, y_test = train_test_split(testDataFrame, target)
-        inverter = GA_inverter.GA_Inverter(0, base.Toolbox(), x_test.iloc[0].size, len(x_test.index), 10,
-                                            df_list_unscaled, scaler_list)
-        inverter.initialize_invertion_functions()
-        y_pred = model_list[index].predict(x_test)
-        valid_pop = inverter._generate_valid_pop(index, y_pred, model_list[index], scaler_list[index], CXPB, MUTPB, NGEN,
-                                                 DESIRED_OUTPUT, OUTPUT_TOLERANCE)
-        dataset_inverted = df_list[index].copy();
-       # dataset_original = df_list_unscaled[index].copy().values.tolist();
-       # dataset_original_df = df_list_unscaled[index].copy()
-        dataset_inverted.drop(dataset_inverted.index, inplace=True)
-        for ind, row in enumerate(valid_pop):
-            dataset_inverted.loc[ind] = valid_pop[ind]
-        dataset_inverted['target'] = pd.Series(target_list[index])
-        dataset_inverted = scaler_list[index].inverse_transform(dataset_inverted)
-        inverted_list.append(dataset_inverted)
-    logger.info("Done invert_all method")
-    return inverted_list
 
 
 
@@ -59,8 +34,9 @@ def predict_position(inputs, target_list, df_list, df_list_unscaled, model_list,
     for RSSI, value in inputs.items():
         for index, target in enumerate(target_list):
             if target.name == RSSI:
+                #TODO HAVE TO MODIFY THIS ACCORDING TO THE MODIFIED INVERT NAD GA_Inverter constructor!
                 x_train, x_test, y_train, y_test = train_test_split(df_list[index], target)
-                inverter = GA_inverter.GA_Inverter(index, base.Toolbox(), x_test.iloc[0].size, len(x_test.index), 10,
+                inverter = GA_inverter.GA_Inverter(index, x_test.iloc[0].size, len(x_test.index), 10,
                                                    df_list_unscaled,
                                                    scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE)
                 inverter.initialize_invertion_functions()
@@ -161,6 +137,8 @@ def main():
 
     with open("model_list", "rb") as fp:
         model_list = pickle.load(fp)
+
+     #TODO MODEL LIST + SCALER LIST ->ANN_comp list
 
     list_of_inputs = create_inputs_by_index(selected_features, df_list_unscaled)
 
