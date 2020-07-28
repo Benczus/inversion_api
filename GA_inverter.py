@@ -9,8 +9,7 @@ import datetime
 
 from sklearn.model_selection import train_test_split
 
-from util import setup_logger
-
+from util import setup_logger, calculate_spherical_coordinates
 current_datetime = datetime.datetime.now()
 ga_logger = setup_logger('ga_invert',
                       "log/ga_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month, current_datetime.day,
@@ -35,6 +34,7 @@ class GA_Inverter():
         self.NGEN = NGEN;
         self.DESIRED_OUTPUT = DESIRED_OUTPUT;
         self.OUTPUT_TOLERANCE= OUTPUT_TOLERANCE
+        self.__initialize_invertion_functions()
 
     def creator_function(self):
         return self.creator.Individual(self._generate_individual())
@@ -47,20 +47,10 @@ class GA_Inverter():
                            math.floor(self.df_list_unscaled[self.index].max()[1]))
         z = random.randint(math.floor(self.df_list_unscaled[self.index].min()[2]),
                            math.floor(self.df_list_unscaled[self.index].max()[2]))
+
         x_y = x * y
         x_y_z = x * y * z
-        r = x ** 2 + y ** 2 + z ** 2
-        r = np.sqrt(r)
-        if r is not 0:
-            tetha = y / r
-        else:
-            tetha = 0
-        tetha = np.arccos(tetha)
-        if (x is not 0):
-            phi = y / x
-        else:
-            phi = 0
-        phi = np.tanh(phi)
+        (r, tetha, phi)= calculate_spherical_coordinates(x, y, z)
         ga_logger.info("Done generate_individual method")
         return self.scaler_list[self.index].transform([[x, y, z, x_y, x_y_z, r, tetha, phi, 0]]).tolist()[0][:-1]
 
@@ -69,7 +59,7 @@ class GA_Inverter():
         d = (((regressor.predict(np.asarray(individual).reshape(1, -1)) - y_pred) ** 2).sum(),)
         return d
 
-    def initialize_invertion_functions(self):
+    def __initialize_invertion_functions(self):
         ga_logger.info("Started initialize_invertion_functions method")
         self.creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
         self.creator.create("Individual", list, fitness=creator.FitnessMin)
@@ -83,7 +73,7 @@ class GA_Inverter():
         self.toolbox.register("evaluate", self.evaluate)
         ga_logger.info("Done initialize_invertion_functions method")
 
-    def _generate_valid_pop(self, y_predict, model, scaler):
+    def __generate_valid_pop(self, y_predict, model, scaler):
         ga_logger.info("Started generate_valid_pop method")
         fitnesses = list()
         # evaluation
@@ -133,9 +123,9 @@ class GA_Inverter():
         ga_logger.info("Done generate_valid_pop method")
         return [ind for ind in self.pop if ind.fitness.values[0] < 2]
 
-    def invert(self, inverter, y_pred,  scaler, df, target, model):
+    def invert(self, y_pred,  scaler, df, target, model):
         ga_logger.info("Started invert method")
-        valid_pop = inverter._generate_valid_pop(y_pred, model, scaler)
+        valid_pop = self.__generate_valid_pop(y_pred, model, scaler)
         dataset_inverted = df.copy();
         dataset_inverted.drop(dataset_inverted.index, inplace=True)
         for ind, row in enumerate(valid_pop):
