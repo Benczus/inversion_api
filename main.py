@@ -2,9 +2,6 @@ import datetime
 import pickle
 import numpy as np
 import pandas as pd
-from deap import base
-from sklearn.model_selection import train_test_split
-import GA_inverter
 import util
 from prediction_util import get_possible_inputs, calculate_coordinates, calculate_error
 

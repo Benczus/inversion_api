@@ -34,7 +34,7 @@ def __predict_position(inputs, target_list, df_list, df_list_unscaled, model_lis
                                                    scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE)
                 y_pred = model_list[index].predict(x_test)
                 pred_util.debug("Predicted y value:{}".format(y_pred))
-                output = inverter.invert(index, y_pred,  scaler_list, df_list, target_list, model_list)
+                output = inverter.invert(y_pred,  scaler_list[index],  model_list[index])
                 output_dict.update({RSSI: output})
         pred_util.info("Done predict_position method")
     return output_dict

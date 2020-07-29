@@ -1,15 +1,15 @@
+import datetime
 import math
 import random
+
 import numpy as np
 import pandas as pd
 from deap import base
 from deap import creator
 from deap import tools
-import datetime
-
-from sklearn.model_selection import train_test_split
 
 from util import setup_logger, calculate_spherical_coordinates
+
 current_datetime = datetime.datetime.now()
 ga_logger = setup_logger('ga_invert',
                       "log/ga_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month, current_datetime.day,
@@ -104,7 +104,6 @@ class GA_Inverter():
 
             # Evaluate the individuals with an invalid fitness
             invalid_ind = [ind for ind in offsprings if not ind.fitness.valid]
-            fitnesses = list()
             for index, individual in enumerate(invalid_ind):
                 fitnesses.append(self.toolbox.evaluate(individual, model, y_predict[index]))
             for ind, fit in zip(invalid_ind, fitnesses):
@@ -123,14 +122,15 @@ class GA_Inverter():
         ga_logger.info("Done generate_valid_pop method")
         return [ind for ind in self.pop if ind.fitness.values[0] < 2]
 
-    def invert(self, y_pred,  scaler, df, target, model):
+
+    def invert(self, y_pred,  scaler,  model):
         ga_logger.info("Started invert method")
         valid_pop = self.__generate_valid_pop(y_pred, model, scaler)
-        dataset_inverted = df.copy();
+        dataset_inverted = self.df_list_unscaled.copy();
         dataset_inverted.drop(dataset_inverted.index, inplace=True)
         for ind, row in enumerate(valid_pop):
             dataset_inverted.loc[ind] = valid_pop[ind]
-        dataset_inverted['target'] = pd.Series(target)
+        dataset_inverted['target'] = pd.Series(0, index=dataset_inverted.index)
         dataset_inverted = scaler.inverse_transform(dataset_inverted)
         ga_logger.info("Done invert method")
         return dataset_inverted

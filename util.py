@@ -30,7 +30,7 @@ util_logger = setup_logger('util',
                                                              current_datetime.day, current_datetime.hour))
 
 
-def _calculate_spherical_coordinates(dataset):
+def __calculate_spherical_coordinates(dataset):
     util_logger.info("Started invert_all method")
     r = dataset["Position X"] ** 2 + dataset["Position Y"] ** 2 + dataset["Position Z"] ** 2
     r = np.sqrt(r)
