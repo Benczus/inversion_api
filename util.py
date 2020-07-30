@@ -4,6 +4,7 @@ from sklearn import preprocessing
 import datetime
 import logging
 
+
 def setup_logger(logger_name, log_file, level=logging.INFO):
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.DEBUG)
@@ -26,10 +27,10 @@ def setup_logger(logger_name, log_file, level=logging.INFO):
 current_datetime = datetime.datetime.now()
 util_logger = setup_logger('util',
                            "log/util_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
-                                                         current_datetime.day, current_datetime.hour))
+                                                             current_datetime.day, current_datetime.hour))
 
 
-def _calculate_spherical_coordinates(dataset):
+def __calculate_spherical_coordinates(dataset):
     util_logger.info("Started invert_all method")
     r = dataset["Position X"] ** 2 + dataset["Position Y"] ** 2 + dataset["Position Z"] ** 2
     r = np.sqrt(r)
@@ -41,11 +42,29 @@ def _calculate_spherical_coordinates(dataset):
     return (r, tetha, phi)
 
 
+def calculate_spherical_coordinates(x, y, z):
+    util_logger.info("Started invert_all method")
+    r = x ** 2 + y ** 2 + z ** 2
+    r = np.sqrt(r)
+    if r is not 0:
+        tetha = y / r
+    else:
+        tetha = 0
+    tetha = np.arccos(tetha)
+    if (x is not 0):
+        phi = y / x
+    else:
+        phi = 0
+    phi = np.tanh(phi)
+    util_logger.info("Done invert_all method")
+    return (r, tetha, phi)
+
+
 def create_synthetic_features(dataset):
     util_logger.info("Started create_synthetic_features method")
     x_y = dataset["Position X"] * dataset["Position Y"]
     x_y_z = dataset["Position X"] * dataset["Position Y"] * dataset["Position Z"]
-    (r, tetha, phi) = _calculate_spherical_coordinates(dataset)
+    (r, tetha, phi) = __calculate_spherical_coordinates(dataset)
     synthetic = pd.DataFrame()
     synthetic["x_y"] = x_y
     synthetic["x_y_z"] = x_y_z
@@ -89,3 +108,26 @@ def transform_data(dataset):
     util_logger.info("Done transform_data method")
     return selected_features
 
+
+def create_inputs_by_index(selected_features, df_list_unscaled):
+    util_logger.info("Started create_inputs_by_index method")
+    list_of_inputs = []
+    for index in selected_features.index:
+        inputs_list_by_time = {}
+        for df in df_list_unscaled:
+            df_mod = pd.DataFrame(df.iloc[:, -1])
+            for i in range(df_mod.count()[0]):
+                if df_mod.index[i] == index:
+                    inputs_list_by_time.update({df_mod.columns[0]: df_mod.iloc[0, 0]})
+        list_of_inputs.append(inputs_list_by_time)
+        util_logger.info("Done create_inputs_by_index method")
+    return list_of_inputs
+
+
+def create_coordiantes_by_index(selected_features):
+    util_logger.info("Started create_coordiantes_by_index method")
+    actual_coordinates = []
+    for index in selected_features.index:
+        actual_coordinates.append([selected_features.iloc[index][0], selected_features.iloc[index][1]])
+        util_logger.info("Done create_coordiantes_by_index method")
+    return actual_coordinates
