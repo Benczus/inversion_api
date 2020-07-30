@@ -7,9 +7,11 @@ import pandas as pd
 from deap import base
 from deap import creator
 from deap import tools
-from sklearn.metrics import r2_score
-from util import setup_logger, calculate_spherical_coordinates
 from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
+
+from util import setup_logger, calculate_spherical_coordinates
+
 current_datetime = datetime.datetime.now()
 ga_logger = setup_logger('ga_invert',
                          "log/ga_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
@@ -19,9 +21,8 @@ ga_logger = setup_logger('ga_invert',
 
 class GA_Inverter():
 
-    def __init__(self, index, ind_size, pop_size, elite_count, df_list_unscaled, scaler_list, CXPB, MUTPB, NGEN,
-                 DESIRED_OUTPUT,
-                 OUTPUT_TOLERANCE):
+    def __init__(self, index, ind_size, pop_size, elite_count, df_list_unscaled, CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
+                 OUTPUT_TOLERANCE, ann_comp_list):
         ga_logger.info("Instantiated GA_Inverter class")
         self.creator = creator
         self.index = index
@@ -30,7 +31,7 @@ class GA_Inverter():
         self.POP_SIZE = pop_size
         self.elite_count = elite_count
         self.df_list_unscaled = df_list_unscaled
-        self.scaler_list = scaler_list
+        self.ann_comp_list = ann_comp_list
         self.CXPB = CXPB;
         self.MUTPB = MUTPB;
         self.NGEN = NGEN;
@@ -83,12 +84,13 @@ class GA_Inverter():
         self.toolbox.register("score_r2", self.r2_score())
         ga_logger.info("Done initialize_invertion_functions method")
 
-    def __generate_valid_pop(self, y_predict, model, scaler):
+    def __generate_valid_pop(self, y_predict, ann_component):
         ga_logger.info("Started generate_valid_pop method")
         fitnesses = list()
         # First pass
-        fitnesses = self.__evaluate_individuals(model,
-                                                scaler.transform([[0, 0, 0, 0, 0, 0, 0, 0, self.DESIRED_OUTPUT]])[0][8],
+        fitnesses = self.__evaluate_individuals(ann_component.model,
+                                                ann_component.scaler.transform(
+                                                    [[0, 0, 0, 0, 0, 0, 0, 0, self.DESIRED_OUTPUT]])[0][8],
                                                 fitnesses)
         ga_logger.debug("Initial fitness values {}".format(fitnesses))
         for g in range(self.NGEN):
@@ -101,7 +103,7 @@ class GA_Inverter():
             ga_logger.debug("Generated parents: {} and offsprings: iteration {}".format(parents, offsprings))
             fitnesses, invalid_ind = self.__evaluate_invalid_individuals(offsprings, fitnesses)
             self.__create_new_generation(elites, offsprings)
-            fitnesses = self.__evaluate_individuals(model, y_predict, fitnesses)
+            fitnesses = self.__evaluate_individuals(ann_component.model, y_predict, fitnesses)
             ga_logger.debug("Fitness values at the {}. iteration {}".format(g, fitnesses))
             ga_logger.debug("{}. generation of individuals : {}".format(g, self.pop))
         ga_logger.debug("Final generation individuals : {}".format(self.pop))
@@ -146,9 +148,9 @@ class GA_Inverter():
         ga_logger.info("Done __evaluate_individuals method")
         return fitnesses
 
-    def invert(self, y_pred, scaler, model):
+    def invert(self, y_pred, ann_component):
         ga_logger.info("Started invert method")
-        valid_pop = self.__generate_valid_pop(y_pred, model, scaler)
+        valid_pop = self.__generate_valid_pop(y_pred, ann_component)
         dataset_inverted = self.df_list_unscaled.copy();
         dataset_inverted.drop(dataset_inverted.index, inplace=True)
         for ind, row in enumerate(valid_pop):
@@ -158,4 +160,3 @@ class GA_Inverter():
         ga_logger.debug("Final inverted values: ".format(dataset_inverted))
         ga_logger.info("Done invert method")
         return dataset_inverted
-
