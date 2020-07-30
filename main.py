@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error, r2_score
 
 import util
+from ANN_component import ANN_component
 from ANN_training import create_ANN_list
 from prediction_util import get_possible_inputs, average_xy_positions
 
@@ -61,7 +62,13 @@ def main():
     with open("model_list", "rb") as fp:
         model_list = pickle.load(fp)
 
-     #TODO MODEL LIST + SCALER LIST ->ANN_comp list
+    # MODEL LIST + SCALER LIST ->ANN_comp list
+    ann_comp_list=[]
+    for model, scaler in zip(model_list,scaler_list ):
+        ann_comp_list.append(ANN_component(model,scaler))
+
+
+
 
     if clean_run:
         list_of_inputs = util.create_inputs_by_index(selected_features, df_list_unscaled)
@@ -85,7 +92,8 @@ def main():
         CXPB, MUTPB, NGEN = 0.5, 0.1, 1000
         DESIRED_OUTPUT = -80
         OUTPUT_TOLERANCE = 2
-        output_list = get_possible_inputs(list_of_inputs, target_list, df_list, df_list_unscaled, model_list, scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE)
+        output_list = get_possible_inputs(list_of_inputs, ann_comp_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN,
+                                          DESIRED_OUTPUT, OUTPUT_TOLERANCE, target_list)
         with open("invertedpos_list", "wb") as fp:
             pickle.dump(output_list, fp)
 
@@ -99,7 +107,7 @@ def main():
             predicted_cooridnates = np.array(average_xy_positions(inverted_positions))
             error_list.append((mean_squared_error(predicted_cooridnates, actual_coordinates), r2_score(predicted_cooridnates, actual_coordinates)))
         with open("error_list", "wb") as fp:
-            pickle.dump(output_list, fp)
+            pickle.dump(error_list, fp)
 
     with open("error_list", "rb") as fp:
         error_list = pickle.load(fp)

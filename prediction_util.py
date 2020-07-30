@@ -1,42 +1,41 @@
 from datetime import datetime
-
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-
 import GA_inverter
 from util import setup_logger
-
 current_datetime = datetime.datetime.now()
 pred_util_logger = setup_logger('util',
                            "log/util_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
                                                              current_datetime.day, current_datetime.hour))
 
 
-def get_possible_inputs(list_of_inputs, target_list, df_list, df_list_unscaled, model_list, scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE):
+def get_possible_inputs(list_of_inputs, ann_comp_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
+                        OUTPUT_TOLERANCE, target_list):
     pred_util_logger.info("Started get_output_list method")
     predicted_outputs_list = []
     for inputs_by_time in list_of_inputs:
-        prediction=__predict_position(inputs_by_time, target_list, df_list, df_list_unscaled, model_list, scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE)
+        prediction= __predict_position(inputs_by_time, ann_comp_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN,
+                                       DESIRED_OUTPUT, OUTPUT_TOLERANCE, target_list)
         predicted_outputs_list.append(prediction)
         pred_util_logger.info("Current prediction: {}".format(prediction))
     pred_util_logger.info("Done get_output_list method")
     return predicted_outputs_list
 
 
-def __predict_position(inputs, target_list, df_list, df_list_unscaled, model_list, scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE):
+def __predict_position(inputs, ann_comp_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
+                       OUTPUT_TOLERANCE, target_list):
     pred_util_logger.info("Started predict_position method")
     output_dict = {}
     for RSSI, value in inputs.items():
         for index, target in enumerate(target_list):
             if target.name == RSSI:
                 x_train, x_test, y_train, y_test = train_test_split(df_list[index], target)
-                inverter = GA_inverter.GA_Inverter(index, x_test.iloc[0].size, len(x_test.index), 10,
-                                                   df_list_unscaled,
-                                                   scaler_list, CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE)
-                y_pred = model_list[index].predict(x_test)
+                inverter = GA_inverter.GA_Inverter(index, x_test.iloc[0].size, len(x_test.index), 10, df_list_unscaled,
+                                                   CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE, ann_comp_list)
+                y_pred = ann_comp_list[index].model.predict(x_test)
                 pred_util_logger.debug("Predicted y value:{}".format(y_pred))
-                output = inverter.invert(y_pred,  scaler_list[index],  model_list[index])
+                output = inverter.invert(y_pred, ann_comp_list[index])
                 output_dict.update({RSSI: output})
         pred_util_logger.info("Done predict_position method")
     return output_dict

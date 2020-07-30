@@ -13,11 +13,5 @@ class ANN_component():
         self.model= model
         self.scaler=scaler
 
-    def scale(self, dataset):
 
-        return 0
-
-
-    def inverse_scale(self, scaled_dataset):
-
-        return 0
+    
