@@ -1,10 +1,11 @@
+from datetime import datetime
+
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor
-import datetime
 
-from util import setup_logger
+from util.util import setup_logger
 
-current_datetime = datetime.datetime.now()
+current_datetime = datetime.now()
 ann_logger = setup_logger('ann_training',
                       "log/ann_training_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
                                                             current_datetime.day,

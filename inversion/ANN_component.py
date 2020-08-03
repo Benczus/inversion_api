@@ -1,7 +1,8 @@
-import datetime
-from util import setup_logger
+from datetime import datetime
 
-current_datetime = datetime.datetime.now()
+from util.util import setup_logger
+
+current_datetime = datetime.now()
 ann_logger = setup_logger('ga_invert',
                       "log/ga_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month, current_datetime.day,
                                                     current_datetime.hour))

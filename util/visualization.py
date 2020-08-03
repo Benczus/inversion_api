@@ -1,9 +1,10 @@
+from datetime import datetime
+
 import matplotlib.pyplot as plt
-import datetime
 
-from util import setup_logger
+from util.util import setup_logger
 
-current_datetime = datetime.datetime.now()
+current_datetime = datetime.now()
 vis_logger = setup_logger('visualization',
                       "log/visual_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
                                                          current_datetime.day,

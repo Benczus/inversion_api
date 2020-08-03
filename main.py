@@ -1,19 +1,20 @@
-import datetime
+from datetime import datetime
 import pickle
+
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error, r2_score
 
-import util
-from ANN_component import ANN_component
-from ANN_training import create_ANN_list
-from prediction_util import get_possible_inputs, average_xy_positions
+from inversion.ANN_component import ANN_component
+from inversion.ANN_training import create_ANN_list
+from inversion.util.inversion_util import get_possible_inputs, average_xy_positions
+from util import util
 
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-current_datetime = datetime.datetime.now()
+current_datetime = datetime.now()
 logger = util.setup_logger('main',
                            "log/main_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
                                                              current_datetime.day, current_datetime.hour))
@@ -22,7 +23,7 @@ clean_run=True
 
 
 def main():
-    dataset = pd.read_csv("dataset.csv", sep=";")
+    dataset = pd.read_csv("data/dataset.csv", sep=";")
     selected_features = util.transform_data(dataset)
 
     df_list = list()
@@ -56,10 +57,10 @@ def main():
 
     if clean_run:
         model_list=create_ANN_list(df_list, target_list)
-        with open("model_list", "wb") as fp:
+        with open("model/model_list", "wb") as fp:
              pickle.dump(model_list, fp)
 
-    with open("model_list", "rb") as fp:
+    with open("model/model_list", "rb") as fp:
         model_list = pickle.load(fp)
 
     # MODEL LIST + SCALER LIST ->ANN_comp list
@@ -72,18 +73,18 @@ def main():
 
     if clean_run:
         list_of_inputs = util.create_inputs_by_index(selected_features, df_list_unscaled)
-        with open("input_lists", "wb") as fp:
+        with open("model/input_lists", "wb") as fp:
             pickle.dump(list_of_inputs, fp)
 
-    with open("input_lists", "rb") as fp:
+    with open("model/input_lists", "rb") as fp:
         list_of_inputs = pickle.load(fp)
 
     if clean_run:
         actual_coordinates = util.create_coordiantes_by_index(selected_features)
-        with open("actual_coords", "wb") as fp:
+        with open("model/actual_coords", "wb") as fp:
             pickle.dump(actual_coordinates, fp)
 
-    with open("actual_coords", "rb") as fp:
+    with open("model/actual_coords", "rb") as fp:
         actual_coordinates = pickle.load(fp)
 
 
@@ -94,10 +95,10 @@ def main():
         OUTPUT_TOLERANCE = 2
         output_list = get_possible_inputs(list_of_inputs, ann_comp_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN,
                                           DESIRED_OUTPUT, OUTPUT_TOLERANCE, target_list)
-        with open("invertedpos_list", "wb") as fp:
+        with open("model/invertedpos_list", "wb") as fp:
             pickle.dump(output_list, fp)
 
-    with open("invertedpos_list", "rb") as fp:
+    with open("model/invertedpos_list", "rb") as fp:
         inverted_positions_list = pickle.load(fp)
 
     if clean_run:
@@ -106,10 +107,10 @@ def main():
         for inverted_positions in inverted_positions_list:
             predicted_cooridnates = np.array(average_xy_positions(inverted_positions))
             error_list.append((mean_squared_error(predicted_cooridnates, actual_coordinates), r2_score(predicted_cooridnates, actual_coordinates)))
-        with open("error_list", "wb") as fp:
+        with open("model/error_list", "wb") as fp:
             pickle.dump(error_list, fp)
 
-    with open("error_list", "rb") as fp:
+    with open("model/error_list", "rb") as fp:
         error_list = pickle.load(fp)
 
 if __name__ == "__main__":

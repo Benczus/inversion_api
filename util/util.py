@@ -1,8 +1,10 @@
+import datetime
+from datetime import datetime
+import logging
+
 import numpy as np
 import pandas as pd
 from sklearn import preprocessing
-import datetime
-import logging
 
 
 def setup_logger(logger_name, log_file, level=logging.INFO):
@@ -24,7 +26,7 @@ def setup_logger(logger_name, log_file, level=logging.INFO):
     return logger
 
 
-current_datetime = datetime.datetime.now()
+current_datetime = datetime.now()
 util_logger = setup_logger('util',
                            "log/util_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
                                                              current_datetime.day, current_datetime.hour))

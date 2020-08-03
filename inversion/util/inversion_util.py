@@ -1,10 +1,13 @@
 from datetime import datetime
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import train_test_split
-import GA_inverter
-from util import setup_logger
-current_datetime = datetime.datetime.now()
+
+from inversion import GA_inverter
+from util.util import setup_logger
+
+current_datetime = datetime.now()
 pred_util_logger = setup_logger('util',
                            "log/util_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
                                                              current_datetime.day, current_datetime.hour))

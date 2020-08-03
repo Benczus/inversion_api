@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import math
 import random
 
@@ -10,9 +10,9 @@ from deap import tools
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 
-from util import setup_logger, calculate_spherical_coordinates
+from util.util import setup_logger, calculate_spherical_coordinates
 
-current_datetime = datetime.datetime.now()
+current_datetime = datetime.now()
 ga_logger = setup_logger('ga_invert',
                          "log/ga_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
                                                          current_datetime.day,
@@ -156,7 +156,7 @@ class GA_Inverter():
         for ind, row in enumerate(valid_pop):
             dataset_inverted.loc[ind] = valid_pop[ind]
         dataset_inverted['target'] = pd.Series(0, index=dataset_inverted.index)
-        dataset_inverted = scaler.inverse_transform(dataset_inverted)
+        dataset_inverted = ann_component.scaler.inverse_transform(dataset_inverted)
         ga_logger.debug("Final inverted values: ".format(dataset_inverted))
         ga_logger.info("Done invert method")
         return dataset_inverted
