@@ -1,6 +1,6 @@
-from datetime import datetime
 import math
 import random
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -19,7 +19,7 @@ ga_logger = setup_logger('ga_invert',
                                                          current_datetime.hour))
 
 
-class GA_Inverter():
+class ga_inverter():
 
     def __init__(self, index, ind_size, pop_size, elite_count, df_list_unscaled, CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
                  OUTPUT_TOLERANCE, ann_comp_list):

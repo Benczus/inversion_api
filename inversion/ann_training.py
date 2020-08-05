@@ -7,28 +7,29 @@ from sklearn.neural_network import MLPRegressor
 
 from util.util import setup_logger
 
-__defaultmodel= MLPRegressor(activation='relu', alpha=0.001, batch_size='auto', beta_1=0.9,
-                             beta_2=0.999, early_stopping=False, epsilon=1e-08,
-                             hidden_layer_sizes=(200, 300, 400, 300, 200), learning_rate='adaptive',
-                             learning_rate_init=0.0001, max_iter=5000, momentum=0.5,
-                             n_iter_no_change=10, nesterovs_momentum=True, power_t=0.5,
-                             random_state=None, shuffle=True, solver='adam', tol=0.0001,
-                             validation_fraction=0.1, verbose=False, warm_start=False)
+__defaultmodel = MLPRegressor(activation='relu', alpha=0.001, batch_size='auto', beta_1=0.9,
+                              beta_2=0.999, early_stopping=False, epsilon=1e-08,
+                              hidden_layer_sizes=(200, 300, 400, 300, 200), learning_rate='adaptive',
+                              learning_rate_init=0.0001, max_iter=5000, momentum=0.5,
+                              n_iter_no_change=10, nesterovs_momentum=True, power_t=0.5,
+                              random_state=None, shuffle=True, solver='adam', tol=0.0001,
+                              validation_fraction=0.1, verbose=False, warm_start=False)
 
 current_datetime = datetime.now()
 ann_logger = setup_logger('ann_training',
-                      "log/ann_training_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
-                                                            current_datetime.day,
-                                                            current_datetime.hour))
+                          "log/ann_training_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
+                                                                    current_datetime.day,
+                                                                    current_datetime.hour))
 
-ANN_List = []
+ann_list = []
 
-def create_ANN_list(df_list, target_list, model=__defaultmodel):
+
+def create_ann_list(df_list, target_list, model=__defaultmodel):
     ann_logger.info("Started create_ANN_list method")
     for (testDataFrame, target) in zip(df_list, target_list):
-        train_ann(testDataFrame, target,  model)
+        train_ann(testDataFrame, target, model)
     ann_logger.info("Done create_ANN_list method")
-    return ANN_List
+    return ann_list
 
 
 def train_ann(features, target, model):
@@ -44,4 +45,4 @@ def train_ann(features, target, model):
         pickle.dump(model, fp)
     ann_logger.info("Model pickling for  {} complete!".format(target.name))
     ann_logger.debug("Model score of {} : {}".format(target.name, model.score(x_test, y_test)))
-    ANN_List.append(model)
+    ann_list.append(model)
