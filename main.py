@@ -21,7 +21,6 @@ logger = util.setup_logger('main',
 
 clean_run=True
 
-
 def main():
     dataset = pd.read_csv("data/dataset.csv", sep=";")
     selected_features = util.transform_data(dataset)
