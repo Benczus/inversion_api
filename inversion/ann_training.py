@@ -22,7 +22,7 @@ ann_logger = setup_logger('ann_training',
                                                                     current_datetime.hour))
 
 
-def create_ann_list(df_list, target_list, model=__defaultmodel):
+def create_ANN_list(df_list, target_list, model=__defaultmodel):
     ann_logger.info("Started create_ANN_list method")
     ann_list = []
     for (testDataFrame, target) in zip(df_list, target_list):
