@@ -2,3 +2,5 @@
 .idea/*
 .log/
 .venv/
+./model/ann_models
+./model/ann_models/*
