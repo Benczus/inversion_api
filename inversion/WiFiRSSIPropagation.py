@@ -10,7 +10,7 @@ ann_logger = setup_logger('ga_invert',
                                                           current_datetime.hour))
 
 
-class wifi_rssi_propagation_model():
+class WifiRSSIPropagation():
     def __init__(self, name, model, scaler):
         ann_logger.info("Instantiated GA_Inverter method")
         self.model = model
@@ -20,5 +20,9 @@ class wifi_rssi_propagation_model():
     @staticmethod
     def load_model(filepath):
         with open(filepath, "rb") as fp:
-            model = pickle.load(fp)
-        ap_name = filepath.split("/")[-1]
+            return pickle.load(fp)
+
+    @staticmethod
+    def save_model(filepath,wifirssiprop):
+        with open(filepath, "wb") as fp:
+            pickle.dump(wifirssiprop, fp)

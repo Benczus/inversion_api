@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from inversion import ga_inverter
+from inversion import GAInverter
 from util.util import setup_logger
 
 current_datetime = datetime.now()
@@ -34,8 +34,8 @@ def __predict_position(inputs, ann_comp_list, df_list, df_list_unscaled, CXPB, M
         for index, target in enumerate(target_list):
             if target.name == RSSI:
                 x_train, x_test, y_train, y_test = train_test_split(df_list[index], target)
-                inverter = ga_inverter.ga_inverter(index, x_test.iloc[0].size, len(x_test.index), 10, df_list_unscaled,
-                                                   CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE, ann_comp_list)
+                inverter = GAInverter.GAInverter(index, x_test.iloc[0].size, len(x_test.index), 10, df_list_unscaled,
+                                                 CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE, ann_comp_list)
                 y_pred = ann_comp_list[index].model.predict(x_test)
                 pred_util_logger.debug("Predicted y value:{}".format(y_pred))
                 output = inverter.invert(y_pred, ann_comp_list[index])

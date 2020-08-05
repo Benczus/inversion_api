@@ -7,7 +7,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 
 from inversion.ann_training import create_ann_list
 from inversion.util.inversion_util import get_possible_inputs, average_xy_positions
-from inversion.wifi_rssi_propagation_model import wifi_rssi_propagation_model
+from inversion.WiFiRSSIPropagation import WifiRSSIPropagation
 from util import util
 
 pd.set_option('display.max_rows', 500)
@@ -66,7 +66,7 @@ def main():
     # MODEL LIST + SCALER LIST + Target names->wifi_rssi_propagation_model list
     ann_comp_list = []
     for model, scaler, target in zip(model_list, scaler_list, target_list):
-        ann_comp_list.append(wifi_rssi_propagation_model(model, scaler, target.name))
+        ann_comp_list.append(WifiRSSIPropagation(model, scaler, target.name))
 
     if clean_run:
         list_of_inputs = util.create_inputs_by_index(selected_features, df_list_unscaled)

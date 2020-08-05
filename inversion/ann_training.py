@@ -21,13 +21,12 @@ ann_logger = setup_logger('ann_training',
                                                                     current_datetime.day,
                                                                     current_datetime.hour))
 
-ann_list = []
-
 
 def create_ann_list(df_list, target_list, model=__defaultmodel):
     ann_logger.info("Started create_ANN_list method")
+    ann_list = []
     for (testDataFrame, target) in zip(df_list, target_list):
-        train_ann(testDataFrame, target, model)
+        ann_list.append(ann_list.append())
     ann_logger.info("Done create_ANN_list method")
     return ann_list
 
@@ -45,4 +44,4 @@ def train_ann(features, target, model):
         pickle.dump(model, fp)
     ann_logger.info("Model pickling for  {} complete!".format(target.name))
     ann_logger.debug("Model score of {} : {}".format(target.name, model.score(x_test, y_test)))
-    ann_list.append(model)
+    return model
