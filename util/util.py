@@ -5,12 +5,15 @@ import logging
 import numpy as np
 import pandas as pd
 from sklearn import preprocessing
+import os
 
 
 def setup_logger(logger_name, log_file, level=logging.INFO):
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.DEBUG)
     # create file handler which logs even debug messages
+    if not os.path.exists('log'):
+        os.makedirs('log')
     fh = logging.FileHandler(log_file)
     fh.setLevel(logging.DEBUG)
     # create console handler with a higher log level
