@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error, r2_score
 
-from inversion.ann_training import create_ann_list
+from inversion.ann_training import create_ANN_list
 from inversion.util.inversion_util import get_possible_inputs, average_xy_positions
 from inversion.WiFiRSSIPropagation import WifiRSSIPropagation
 from util import util
@@ -56,7 +56,7 @@ def main():
         logger.debug("{}".format(dataframe.describe()))
 
     if clean_run:
-        model_list = create_ann_list(df_list, target_list)
+        model_list = create_ANN_list(df_list, target_list)
         with open("model/model_list", "wb") as fp:
             pickle.dump(model_list, fp)
 

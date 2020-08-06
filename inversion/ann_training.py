@@ -26,7 +26,7 @@ def create_ANN_list(df_list, target_list, model=__defaultmodel):
     ann_logger.info("Started create_ANN_list method")
     ann_list = []
     for (testDataFrame, target) in zip(df_list, target_list):
-        ann_list.append(ann_list.append())
+        ann_list.append(train_ann(testDataFrame,target,model))
     ann_logger.info("Done create_ANN_list method")
     return ann_list
 
@@ -39,7 +39,7 @@ def train_ann(features, target, model):
     ann_logger.info("Saving model for  {}".format(target.name))
     if not os.path.exists('models/ann_models'):
         os.makedirs('models/ann_models')
-    loc = "model/ann_models/{}".format(target.name)
+    loc = "models/ann_models/{}".format(target.name)
     with open(loc, "wb") as fp:
         pickle.dump(model, fp)
     ann_logger.info("Model pickling for  {} complete!".format(target.name))
