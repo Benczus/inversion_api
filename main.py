@@ -56,7 +56,7 @@ def main():
         logger.debug("{}".format(dataframe.describe()))
 
     if clean_run:
-        model_list = create_ANN_list(df_list, target_list)
+        model_list = create_ANN_list(df_list, target_list, grid_search=True)
         with open("model/model_list", "wb") as fp:
             pickle.dump(model_list, fp)
 

@@ -11,6 +11,7 @@ pandas = "*"
 scikit-learn = "*"
 deap = "*"
 matplotlib = "*"
+sklearn_export = "*"
 
 [requires]
 python_version = "3.8"
