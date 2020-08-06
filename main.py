@@ -1,13 +1,13 @@
-from datetime import datetime
 import pickle
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error, r2_score
 
-from inversion.ANN_component import ANN_component
-from inversion.ANN_training import create_ANN_list
+from inversion.ann_training import create_ANN_list
 from inversion.util.inversion_util import get_possible_inputs, average_xy_positions
+from inversion.WiFiRSSIPropagation import WifiRSSIPropagation
 from util import util
 
 pd.set_option('display.max_rows', 500)
@@ -19,7 +19,8 @@ logger = util.setup_logger('main',
                            "log/main_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
                                                              current_datetime.day, current_datetime.hour))
 
-clean_run=True
+clean_run = True
+
 
 def main():
     dataset = pd.read_csv("data/dataset.csv", sep=";")
@@ -55,20 +56,17 @@ def main():
         logger.debug("{}".format(dataframe.describe()))
 
     if clean_run:
-        model_list=create_ANN_list(df_list, target_list)
+        model_list = create_ANN_list(df_list, target_list)
         with open("model/model_list", "wb") as fp:
-             pickle.dump(model_list, fp)
+            pickle.dump(model_list, fp)
 
     with open("model/model_list", "rb") as fp:
         model_list = pickle.load(fp)
 
-    # MODEL LIST + SCALER LIST ->ANN_comp list
-    ann_comp_list=[]
-    for model, scaler in zip(model_list,scaler_list ):
-        ann_comp_list.append(ANN_component(model,scaler))
-
-
-
+    # MODEL LIST + SCALER LIST + Target names->wifi_rssi_propagation_model list
+    ann_comp_list = []
+    for model, scaler, target in zip(model_list, scaler_list, target_list):
+        ann_comp_list.append(WifiRSSIPropagation(model, scaler, target.name))
 
     if clean_run:
         list_of_inputs = util.create_inputs_by_index(selected_features, df_list_unscaled)
@@ -85,8 +83,6 @@ def main():
 
     with open("model/actual_coords", "rb") as fp:
         actual_coordinates = pickle.load(fp)
-
-
 
     if clean_run:
         CXPB, MUTPB, NGEN = 0.5, 0.1, 1000
@@ -105,12 +101,14 @@ def main():
         error_list = []
         for inverted_positions in inverted_positions_list:
             predicted_cooridnates = np.array(average_xy_positions(inverted_positions))
-            error_list.append((mean_squared_error(predicted_cooridnates, actual_coordinates), r2_score(predicted_cooridnates, actual_coordinates)))
+            error_list.append((mean_squared_error(predicted_cooridnates, actual_coordinates),
+                               r2_score(predicted_cooridnates, actual_coordinates)))
         with open("model/error_list", "wb") as fp:
             pickle.dump(error_list, fp)
 
     with open("model/error_list", "rb") as fp:
         error_list = pickle.load(fp)
+
 
 if __name__ == "__main__":
     main()

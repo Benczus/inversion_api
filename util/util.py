@@ -1,11 +1,10 @@
-import datetime
-from datetime import datetime
 import logging
+import os
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
 from sklearn import preprocessing
-import os
 
 
 def setup_logger(logger_name, log_file, level=logging.INFO):

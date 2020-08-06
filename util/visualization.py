@@ -6,12 +6,12 @@ from util.util import setup_logger
 
 current_datetime = datetime.now()
 vis_logger = setup_logger('visualization',
-                      "log/visual_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
-                                                         current_datetime.day,
-                                                         current_datetime.hour))
+                          "log/visual_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
+                                                              current_datetime.day,
+                                                              current_datetime.hour))
 
 
-def plot_inverted(dataset ,dataset_unscaled, dataset_inverted, DESIRED_OUTPUT, OUTPUT_TOLERANCE ):
+def plot_inverted(dataset, dataset_unscaled, dataset_inverted, DESIRED_OUTPUT, OUTPUT_TOLERANCE):
     vis_logger.info("Started plot_inverted method")
     dataset_original = dataset_unscaled.copy().values.tolist();
     dataset_original_df = dataset_unscaled.copy()
