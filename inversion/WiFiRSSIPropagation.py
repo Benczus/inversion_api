@@ -22,10 +22,7 @@ class WifiRSSIPropagation():
         with open(filepath, "rb") as fp:
             return pickle.load(fp)
 
-
-
     @staticmethod
     def save_model(filepath, wifirssiprop):
         with open(filepath, "wb") as fp:
             pickle.dump(wifirssiprop, fp)
-
