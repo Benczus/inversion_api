@@ -80,7 +80,6 @@ def __inversion(selected_features, df_list, target_list, df_list_unscaled, wifi_
 def main():
     dataset = pd.read_csv("data/dataset.csv", sep=";")
     selected_features = util.transform_data(dataset)
-
     df_list = list()
     scaler_list = list()
     target_list = list()
