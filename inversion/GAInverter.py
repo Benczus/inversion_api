@@ -22,7 +22,7 @@ ga_logger = setup_logger('ga_invert',
 class GAInverter():
 
     def __init__(self, index, ind_size, pop_size, elite_count, df_list_unscaled, CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
-                 OUTPUT_TOLERANCE, ann_comp_list):
+                 OUTPUT_TOLERANCE, wifiRSSIPropagation_list):
         ga_logger.info("Instantiated GA_Inverter class")
         self.creator = creator
         self.index = index
@@ -31,7 +31,7 @@ class GAInverter():
         self.POP_SIZE = pop_size
         self.elite_count = elite_count
         self.df_list_unscaled = df_list_unscaled
-        self.ann_comp_list = ann_comp_list
+        self.wifiRSSIPropagation_list = wifiRSSIPropagation_list
         self.CXPB = CXPB;
         self.MUTPB = MUTPB;
         self.NGEN = NGEN;
@@ -84,31 +84,23 @@ class GAInverter():
         self.toolbox.register("score_r2", self.r2_score())
         ga_logger.info("Done initialize_invertion_functions method")
 
-    def __generate_valid_pop(self, y_predict, ann_component):
-        ga_logger.info("Started generate_valid_pop method")
+    def __initial_generation(self, y_predict, wifiRSSIPropagation):
         fitnesses = list()
         # First pass
-        fitnesses = self.__evaluate_individuals(ann_component.model,
-                                                ann_component.scaler.transform(
-                                                    [[0, 0, 0, 0, 0, 0, 0, 0, self.DESIRED_OUTPUT]])[0][8],
-                                                fitnesses)
+        fitnesses = self.__evaluate_individuals(wifiRSSIPropagation.model,
+                                                wifiRSSIPropagation.scaler.transform(
+                                                    np.append(np.zeros(wifiRSSIPropagation.model.coefs_[0].shape[0]),
+                                                              self.DESIRED_OUTPUT)
+                                                )[0][-1], fitnesses)
+        return fitnesses
+
+    def __generate_inverted_population(self, y_predict, wifiRSSIPropagation):
+        ga_logger.info("Started __generate_inverted_population method")
+        fitnesses = self.__initial_generation(y_predict, wifiRSSIPropagation)
         ga_logger.debug("Initial fitness values {}".format(fitnesses))
-        for g in range(self.NGEN):
-            elites = self.toolbox.selectBest(self.pop, k=self.elite_count)
-            elites = list(map(self.toolbox.clone, elites))
-            ga_logger.debug("Chosen elites: {}".format(elites))
-            offsprings = self.toolbox.selectWorst(self.pop, k=self.POP_SIZE - self.elite_count)
-            offsprings = list(map(self.toolbox.clone, offsprings))
-            parents, offsprings = self.__generate_offspings(offsprings)
-            ga_logger.debug("Generated parents: {} and offsprings: iteration {}".format(parents, offsprings))
-            fitnesses, invalid_ind = self.__evaluate_invalid_individuals(offsprings, fitnesses)
-            self.__create_new_generation(elites, offsprings)
-            fitnesses = self.__evaluate_individuals(ann_component.model, y_predict, fitnesses)
-            ga_logger.debug("Fitness values at the {}. iteration {}".format(g, fitnesses))
-            ga_logger.debug("{}. generation of individuals : {}".format(g, self.pop))
-        ga_logger.debug("Final generation individuals : {}".format(self.pop))
-        ga_logger.info("Done generate_valid_pop method")
-        return [ind for ind in self.pop if ind.fitness.values[0] < 2]
+        optimized_pop = self.__optimize_population(y_predict, wifiRSSIPropagation)
+        ga_logger.info("Done __generate_inverted_population method")
+        return optimized_pop
 
     def __create_new_generation(self, elites, offsprings):
         ga_logger.info("Started __create_new_generation method")
@@ -148,15 +140,36 @@ class GAInverter():
         ga_logger.info("Done __evaluate_individuals method")
         return fitnesses
 
-    def invert(self, y_pred, ann_component):
+    def invert(self, y_pred, wifiRSSIPropagation):
         ga_logger.info("Started invert method")
-        valid_pop = self.__generate_valid_pop(y_pred, ann_component)
-        dataset_inverted = self.df_list_unscaled.copy();
-        dataset_inverted.drop(dataset_inverted.index, inplace=True)
-        for ind, row in enumerate(valid_pop):
-            dataset_inverted.loc[ind] = valid_pop[ind]
-        dataset_inverted['target'] = pd.Series(0, index=dataset_inverted.index)
-        dataset_inverted = ann_component.scaler.inverse_transform(dataset_inverted)
+        inverted_pop = self.__generate_inverted_population(y_pred, wifiRSSIPropagation)
+        dataset_inverted = pd.DataFrame(data=inverted_pop,
+                                        columns=["pos_x", "pos_y", "pos_z", "x_y", "x_y_z", "r", "tetha", "phi"])
+        # dataset_inverted = self.df_list_unscaled.copy();
+        # dataset_inverted.drop(dataset_inverted.index, inplace=True)
+        # for ind, row in enumerate(inverted_pop):
+        #     dataset_inverted.loc[ind] = inverted_pop[ind]
+        dataset_inverted['target'] = pd.Series(y_pred, index=dataset_inverted.index)
+        dataset_inverted = wifiRSSIPropagation.scaler.inverse_transform(dataset_inverted)
         ga_logger.debug("Final inverted values: ".format(dataset_inverted))
         ga_logger.info("Done invert method")
         return dataset_inverted
+
+    def __optimize_population(self, y_predict, wifiRSSIPropagation, threshold=2):
+        for g in range(self.NGEN):
+            elites = self.toolbox.selectBest(self.pop, k=self.elite_count)
+            elites = list(map(self.toolbox.clone, elites))
+            ga_logger.debug("Chosen elites: {}".format(elites))
+            offsprings = self.toolbox.selectWorst(self.pop, k=self.POP_SIZE - self.elite_count)
+            offsprings = list(map(self.toolbox.clone, offsprings))
+            parents, offsprings = self.__generate_offspings(offsprings)
+            ga_logger.debug("Generated parents: {} and offsprings: iteration {}".format(parents, offsprings))
+            fitnesses, invalid_ind = self.__evaluate_invalid_individuals(offsprings, fitnesses)
+            self.__create_new_generation(elites, offsprings)
+            fitnesses = self.__evaluate_individuals(wifiRSSIPropagation.model, y_predict, fitnesses)
+            ga_logger.debug("Fitness values at the {}. iteration {}".format(g, fitnesses))
+            ga_logger.debug("{}. generation of individuals : {}".format(g, self.pop))
+        ga_logger.debug("Final generation individuals : {}".format(self.pop))
+        optimized_pop=[ind for ind in self.pop if ind.fitness.values[0] < threshold]
+        optimized_pop.sort(key=lambda ind: ind.fitness.values[0])
+        return optimized_pop

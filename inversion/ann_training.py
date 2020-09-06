@@ -65,11 +65,27 @@ def __grid_search_ANN(features, target):
     ann_logger.debug(clf.best_score_)
     ann_logger.info("Finished  training for {}".format(target.name))
     ann_logger.info("Saving model for  {}".format(target.name))
-    model = clf.best_estimator_
+    model=__auto_param_optimization(clf, 5)
     __save_model(model, "{}".format(target.name))
     ann_logger.debug("Model score of {} : {}".format(target.name, model.score(x_test, y_test)))
     return
 
+
+def __gen_parameter_space(clf):
+    params=clf.best_params_
+    for i in range(5):
+        params['hidden_layer_sizes'].append()
+        params['alpha'].append()
+        params['learning_rate_init'].append()
+
+#TODO NOT COMPLETE
+def __auto_param_optimization(clf, epochs):
+    # for i in range (epochs):
+    #  param_space=__gen_parameter_space(clf)
+    #  new_clf=GridSearchCV(MLPRegressor(max_iter=2000, learning_rate="adaptive"), param_space, n_jobs=-1, verbose=2)
+    #  if(clf.best_score_ < new_clf.best_estimator_):
+    #     clf=new_clf
+    return clf.best_estimator_
 
 def __save_model(model, name):
     if not os.path.exists('model/ann_models'):
