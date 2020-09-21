@@ -170,6 +170,6 @@ class GAInverter():
             ga_logger.debug("Fitness values at the {}. iteration {}".format(g, fitnesses))
             ga_logger.debug("{}. generation of individuals : {}".format(g, self.pop))
         ga_logger.debug("Final generation individuals : {}".format(self.pop))
-        optimized_pop=[ind for ind in self.pop if ind.fitness.values[0] < threshold]
+        optimized_pop = [ind for ind in self.pop if ind.fitness.values[0] < threshold]
         optimized_pop.sort(key=lambda ind: ind.fitness.values[0])
         return optimized_pop
