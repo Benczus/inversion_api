@@ -22,13 +22,10 @@ logger = util.setup_logger('main',
 
 def __ann_generation(df_list, target_list, scaler_list, clean_run=True, grid_search=True):
     if clean_run:
-        create_ANN_list(df_list, target_list, grid_search=grid_search)
-
-    # MODEL LIST + SCALER LIST + Target names->wifi_rssi_propagation_model list
+        create_ANN_list(df_list, target_list, scaler_list, grid_search=grid_search)
     wifi_rssi_list = []
     for scaler, target in zip(scaler_list, target_list):
-        wifi_rssi_list.append(WifiRSSIPropagation(scaler, target.name))
-
+        wifi_rssi_list.append(WifiRSSIPropagation.load_by_name(target.name))
     return wifi_rssi_list
 
 
