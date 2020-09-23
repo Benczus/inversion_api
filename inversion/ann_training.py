@@ -47,7 +47,6 @@ def __default_model_train_ANN(features, target, model, scaler):
     ann_logger.info("Finished  training for {}".format(target.name))
     ann_logger.info("Saving model for  {}".format(target.name))
     wifirssiprop = WifiRSSIPropagation(target.name, model, scaler)
-    __save_model(wifirssiprop, "{}".format(target.name))
     ann_logger.debug("Model score of {} : {}".format(target.name, wifirssiprop.model.score(x_test, y_test)))
     return wifirssiprop
 
@@ -70,7 +69,6 @@ def __grid_search_train_ANN(features, target, scaler):
     ann_logger.info("Finished  training for {}".format(target.name))
     ann_logger.info("Saving model for  {}".format(target.name))
     wifirssiprop = WifiRSSIPropagation(target.name, __auto_param_optimization(model, 5), scaler)
-    __save_model(wifirssiprop, "{}".format(target.name))
     ann_logger.debug("Model score of {} : {}".format(target.name, wifirssiprop.model.score(x_test, y_test)))
     return wifirssiprop
 
