@@ -23,19 +23,24 @@ ann_logger = setup_logger('ann_training',
                                                                     current_datetime.hour))
 
 
-def create_ANN_list(df_list, target_list, scaler_list, model=__defaultmodel, grid_search=False):
+def create_WiFiRSSIPropagation_list(df_list, target_list, scaler_list, model=__defaultmodel, grid_search=False):
     ann_logger.info("Started create_ANN_list method")
+    wifiRSSIProplist=[]
     if grid_search:
         for (testDataFrame, target, scaler) in zip(df_list, target_list, scaler_list):
-            __grid_search_ANN(testDataFrame, target, scaler)
+            wifirssiprop=__grid_search_train_ANN(testDataFrame, target, scaler)
+            __save_model(wifirssiprop, "{}".format(target.name))
+            wifiRSSIProplist.append(wifirssiprop)
     else:
         for (testDataFrame, target, scaler) in zip(df_list, target_list, scaler_list):
-            __train_ANN(testDataFrame, target, model, scaler)
+            wifirssiprop = __default_model_train_ANN(testDataFrame, target, model, scaler)
+            __save_model(wifirssiprop, "{}".format(target.name))
+            wifiRSSIProplist.append(wifirssiprop)
     ann_logger.info("Done create_ANN_list method")
-    return
+    return wifiRSSIProplist
 
 
-def __train_ANN(features, target, model, scaler):
+def __default_model_train_ANN(features, target, model, scaler):
     x_train, x_test, y_train, y_test = train_test_split(features, target)
     ann_logger.info("Starting training for the {}".format(target.name))
     model.fit(x_train, y_train)
@@ -44,10 +49,10 @@ def __train_ANN(features, target, model, scaler):
     wifirssiprop = WifiRSSIPropagation(target.name, model, scaler)
     __save_model(wifirssiprop, "{}".format(target.name))
     ann_logger.debug("Model score of {} : {}".format(target.name, wifirssiprop.model.score(x_test, y_test)))
-    return
+    return wifirssiprop
 
 
-def __grid_search_ANN(features, target, scaler):
+def __grid_search_train_ANN(features, target, scaler):
     x_train, x_test, y_train, y_test = train_test_split(features, target)
     ann_logger.info("Starting training for the {}".format(target.name))
     parameter_space = {
@@ -67,7 +72,7 @@ def __grid_search_ANN(features, target, scaler):
     wifirssiprop = WifiRSSIPropagation(target.name, __auto_param_optimization(model, 5), scaler)
     __save_model(wifirssiprop, "{}".format(target.name))
     ann_logger.debug("Model score of {} : {}".format(target.name, wifirssiprop.model.score(x_test, y_test)))
-    return
+    return wifirssiprop
 
 
 def __gen_parameter_space(clf):
