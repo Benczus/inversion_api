@@ -58,7 +58,7 @@ def __grid_search_train_ANN(features, target, scaler):
     parameter_space = {
         'hidden_layer_sizes': [(8, 16, 32, 64)],
         'activation': ['tanh', 'relu', 'identity'],
-        'solver': ['lbfgs', 'sgd', 'adam'],
+        'solver': ['lbfgs', 'adam'],
         'alpha': [0.003, 0.001, 0.0003, 0.0001],
         'learning_rate_init': [0.03, 0.01, 0.003, 0.001, 0.0001],
     }
