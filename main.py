@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error, r2_score
 
 from inversion.WiFiRSSIPropagation import WifiRSSIPropagation
-from inversion.ann_training import create_ANN_list
+from inversion.ann_training import create_WiFiRSSIPropagation_list
 from inversion.util.inversion_util import get_possible_inputs, average_xy_positions
 from util import util
 
@@ -21,11 +21,12 @@ logger = util.setup_logger('main',
 
 
 def __ann_generation(df_list, target_list, scaler_list, clean_run=True, grid_search=True):
-    if clean_run:
-        create_ANN_list(df_list, target_list, scaler_list, grid_search=grid_search)
     wifi_rssi_list = []
-    for scaler, target in zip(scaler_list, target_list):
-        wifi_rssi_list.append(WifiRSSIPropagation.load_by_name(target.name))
+    if clean_run:
+        wifi_rssi_list= create_WiFiRSSIPropagation_list(df_list, target_list, scaler_list, grid_search=grid_search)
+    else:
+        for scaler, target in zip(scaler_list, target_list):
+            wifi_rssi_list.append(WifiRSSIPropagation.load_by_name(target.name))
     return wifi_rssi_list
 
 
