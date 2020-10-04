@@ -23,20 +23,25 @@ ann_logger = setup_logger('ann_training',
                                                                     current_datetime.hour))
 
 
-def create_WiFiRSSIPropagation_list(df_list, target_list, scaler_list, model=__defaultmodel, grid_search=False):
+def create_WiFiRSSIPropagation_list(df_list, target_list, scaler_list, demo_mode, model=__defaultmodel, grid_search=False):
     ann_logger.info("Started create_ANN_list method")
-    wifiRSSIProplist=[]
-    if grid_search:
-        for (testDataFrame, target, scaler) in zip(df_list, target_list, scaler_list):
-            wifirssiprop=__grid_search_train_ANN(testDataFrame, target, scaler)
-            __save_model(wifirssiprop, "{}".format(target.name))
-            wifiRSSIProplist.append(wifirssiprop)
+    wifiRSSIProplist = []
+    if demo_mode:
+        ann_logger.info("create_ANN_list demo mode started")
+        wifiRSSIProplist.append(__grid_search_train_ANN(df_list[0], target_list[0], scaler_list[0]))
     else:
-        for (testDataFrame, target, scaler) in zip(df_list, target_list, scaler_list):
-            wifirssiprop = __default_model_train_ANN(testDataFrame, target, model, scaler)
-            __save_model(wifirssiprop, "{}".format(target.name))
-            wifiRSSIProplist.append(wifirssiprop)
-    ann_logger.info("Done create_ANN_list method")
+
+        if grid_search:
+            for (testDataFrame, target, scaler) in zip(df_list, target_list, scaler_list):
+                wifirssiprop=__grid_search_train_ANN(testDataFrame, target, scaler)
+                __save_model(wifirssiprop, "{}".format(target.name))
+                wifiRSSIProplist.append(wifirssiprop)
+        else:
+            for (testDataFrame, target, scaler) in zip(df_list, target_list, scaler_list):
+                wifirssiprop = __default_model_train_ANN(testDataFrame, target, model, scaler)
+                __save_model(wifirssiprop, "{}".format(target.name))
+                wifiRSSIProplist.append(wifirssiprop)
+        ann_logger.info("Done create_ANN_list method")
     return wifiRSSIProplist
 
 

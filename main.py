@@ -19,58 +19,69 @@ logger = util.setup_logger('main',
                            "log/main_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
                                                              current_datetime.day, current_datetime.hour))
 
+__DEMO_MODE=True
 
-def __ann_generation(df_list, target_list, scaler_list, clean_run=True, grid_search=True):
+
+def __ann_generation(df_list, target_list, scaler_list, demo_mode, clean_run=True, grid_search=True):
     wifi_rssi_list = []
-    if clean_run:
-        wifi_rssi_list= create_WiFiRSSIPropagation_list(df_list, target_list, scaler_list, grid_search=grid_search)
+    if demo_mode:
+        wifi_rssi_list = create_WiFiRSSIPropagation_list(df_list, target_list, scaler_list, demo_mode,
+                                                         grid_search=grid_search)
+        #demo mode returns a list with 1 WiFiRSSIPropagation of the 0th index from df_list, target_list, scaler_list
     else:
-        for scaler, target in zip(scaler_list, target_list):
-            wifi_rssi_list.append(WifiRSSIPropagation.load_by_name(target.name))
+        if clean_run:
+            wifi_rssi_list= create_WiFiRSSIPropagation_list(df_list, target_list, scaler_list, demo_mode, grid_search=grid_search)
+        else:
+            for scaler, target in zip(scaler_list, target_list):
+                wifi_rssi_list.append(WifiRSSIPropagation.load_by_name(target.name))
     return wifi_rssi_list
 
 
-def __inversion(selected_features, df_list, target_list, df_list_unscaled, wifi_rssi_list, clean_run=True):
-    if clean_run:
-        list_of_inputs = util.create_inputs_by_index(selected_features, df_list_unscaled)
-        with open("model/input_lists", "wb") as fp:
-            pickle.dump(list_of_inputs, fp)
+def __inversion(selected_features, df_list, target_list, df_list_unscaled, wifi_rssi_list, demo_mode, clean_run=True):
+    inverted_positions_list = []
+    error_list = []
+    CXPB, MUTPB, NGEN = 0.5, 0.1, 1000
+    DESIRED_OUTPUT = -80
+    OUTPUT_TOLERANCE = 2
+    if demo_mode:
+        print("Demo mode")
 
-    with open("model/input_lists", "rb") as fp:
-        list_of_inputs = pickle.load(fp)
+    else:
+        if clean_run:
+            list_of_inputs = util.create_inputs_by_index(selected_features, df_list_unscaled)
+            with open("model/input_lists", "wb") as fp:
+                pickle.dump(list_of_inputs, fp)
 
-    if clean_run:
-        actual_coordinates = util.create_coordiantes_by_index(selected_features)
-        with open("model/actual_coords", "wb") as fp:
-            pickle.dump(actual_coordinates, fp)
+        with open("model/input_lists", "rb") as fp:
+            list_of_inputs = pickle.load(fp)
 
-    with open("model/actual_coords", "rb") as fp:
-        actual_coordinates = pickle.load(fp)
+        if clean_run:
+            actual_coordinates = util.create_coordiantes_by_index(selected_features)
+            with open("model/actual_coords", "wb") as fp:
+                pickle.dump(actual_coordinates, fp)
 
-    if clean_run:
-        CXPB, MUTPB, NGEN = 0.5, 0.1, 1000
-        DESIRED_OUTPUT = -80
-        OUTPUT_TOLERANCE = 2
-        output_list = get_possible_inputs(list_of_inputs, wifi_rssi_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN,
-                                          DESIRED_OUTPUT, OUTPUT_TOLERANCE, target_list)
-        with open("model/invertedpos_list", "wb") as fp:
-            pickle.dump(output_list, fp)
+        with open("model/actual_coords", "rb") as fp:
+            actual_coordinates = pickle.load(fp)
 
-    with open("model/invertedpos_list", "rb") as fp:
-        inverted_positions_list = pickle.load(fp)
+        if clean_run:
+            output_list = get_possible_inputs(list_of_inputs, wifi_rssi_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN,
+                                              DESIRED_OUTPUT, OUTPUT_TOLERANCE, target_list)
+            with open("model/invertedpos_list", "wb") as fp:
+                pickle.dump(output_list, fp)
 
-    if clean_run:
-        inverted_positions_list = []
-        error_list = []
-        for inverted_positions in inverted_positions_list:
-            predicted_cooridnates = np.array(average_xy_positions(inverted_positions))
-            error_list.append((mean_squared_error(predicted_cooridnates, actual_coordinates),
-                               r2_score(predicted_cooridnates, actual_coordinates)))
-        with open("model/error_list", "wb") as fp:
-            pickle.dump(error_list, fp)
+        with open("model/invertedpos_list", "rb") as fp:
+            inverted_positions_list = pickle.load(fp)
 
-    with open("model/error_list", "rb") as fp:
-        error_list = pickle.load(fp)
+        if clean_run:
+            for inverted_positions in inverted_positions_list:
+                predicted_cooridnates = np.array(average_xy_positions(inverted_positions))
+                error_list.append((mean_squared_error(predicted_cooridnates, actual_coordinates),
+                                   r2_score(predicted_cooridnates, actual_coordinates)))
+            with open("model/error_list", "wb") as fp:
+                pickle.dump(error_list, fp)
+
+        with open("model/error_list", "rb") as fp:
+            error_list = pickle.load(fp)
 
     return error_list, inverted_positions_list
 
@@ -107,8 +118,8 @@ def main():
     for dataframe in df_list:
         logger.debug("{}".format(dataframe.describe()))
 
-    wifi_rssi_list = __ann_generation(df_list, target_list, scaler_list, clean_run=True)
-    # error_list,inverted_positions_list = __inversion(selected_features, df_list, target_list, df_list_unscaled, wifi_rssi_list, clean_run=True)
+    wifi_rssi_list = __ann_generation(df_list, target_list, scaler_list, clean_run=True, demo_mode=__DEMO_MODE)
+    # error_list,inverted_positions_list = __inversion(selected_features, df_list, target_list, df_list_unscaled, wifi_rssi_list, clean_run=True, demo_mode=__DEMO_MODE)
 
 
 if __name__ == "__main__":
