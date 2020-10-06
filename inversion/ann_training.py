@@ -26,11 +26,12 @@ ann_logger = setup_logger('ann_training',
 def create_WiFiRSSIPropagation_list(df_list, target_list, scaler_list, demo_mode, model=__defaultmodel, grid_search=False):
     ann_logger.info("Started create_ANN_list method")
     wifiRSSIProplist = []
-    if demo_mode:
+    if demo_mode and grid_search:
         ann_logger.info("create_ANN_list demo mode started")
-        wifiRSSIProplist.append(__grid_search_train_ANN(df_list[0], target_list[0], scaler_list[0]))
+        wifirssiprop=__grid_search_train_ANN(df_list[0], target_list[0], scaler_list[0])
+        __save_model(wifirssiprop, "{}".format(target_list[0].name))
+        wifiRSSIProplist.append(wifirssiprop)
     else:
-
         if grid_search:
             for (testDataFrame, target, scaler) in zip(df_list, target_list, scaler_list):
                 wifirssiprop=__grid_search_train_ANN(testDataFrame, target, scaler)

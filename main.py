@@ -1,4 +1,5 @@
 import pickle
+import os
 from datetime import datetime
 
 import numpy as np
@@ -24,10 +25,12 @@ __DEMO_MODE=True
 
 def __ann_generation(df_list, target_list, scaler_list, demo_mode, clean_run=True, grid_search=True):
     wifi_rssi_list = []
-    if demo_mode:
+    if demo_mode and clean_run:
         wifi_rssi_list = create_WiFiRSSIPropagation_list(df_list, target_list, scaler_list, demo_mode,
                                                          grid_search=grid_search)
         #demo mode returns a list with 1 WiFiRSSIPropagation of the 0th index from df_list, target_list, scaler_list
+    elif demo_mode and not clean_run:
+        wifi_rssi_list.append(WifiRSSIPropagation.load_by_name(target_list[0].name))
     else:
         if clean_run:
             wifi_rssi_list= create_WiFiRSSIPropagation_list(df_list, target_list, scaler_list, demo_mode, grid_search=grid_search)
@@ -118,8 +121,18 @@ def main():
     for dataframe in df_list:
         logger.debug("{}".format(dataframe.describe()))
 
-    wifi_rssi_list = __ann_generation(df_list, target_list, scaler_list, clean_run=True, demo_mode=__DEMO_MODE)
-    # error_list,inverted_positions_list = __inversion(selected_features, df_list, target_list, df_list_unscaled, wifi_rssi_list, clean_run=True, demo_mode=__DEMO_MODE)
+    logger.info("Generating WiFiRSSIPropagation list")
+    if __DEMO_MODE and (target_list[0].name not in os.listdir("./model/ann_models/")):
+        print("1")
+        wifi_rssi_list = __ann_generation(df_list, target_list, scaler_list, clean_run=True, demo_mode=True)
+    elif __DEMO_MODE:
+        print("2")
+        wifi_rssi_list = __ann_generation(df_list, target_list, scaler_list, clean_run=False, demo_mode=True)
+    else:
+        print("3")
+        wifi_rssi_list = __ann_generation(df_list, target_list, scaler_list, clean_run=True, demo_mode=False)
+    logger.info("Starting inversion")
+    error_list,inverted_positions_list = __inversion(selected_features, df_list, target_list, df_list_unscaled, wifi_rssi_list, clean_run=True, demo_mode=False)
 
 
 if __name__ == "__main__":
