@@ -68,7 +68,7 @@ def __inversion(selected_features, df_list, target_list, df_list_unscaled, wifi_
 
         if clean_run:
             output_list = get_possible_inputs(list_of_inputs, wifi_rssi_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN,
-                                              DESIRED_OUTPUT, OUTPUT_TOLERANCE, target_list)
+                                              DESIRED_OUTPUT, OUTPUT_TOLERANCE, target_list, __DEMO_MODE)
             with open("model/invertedpos_list", "wb") as fp:
                 pickle.dump(output_list, fp)
 
@@ -120,7 +120,8 @@ def main():
 
     for dataframe in df_list:
         logger.debug("{}".format(dataframe.describe()))
-
+    if not os.path.exists('model/ann_models'):
+        os.makedirs('model/ann_models')
     logger.info("Generating WiFiRSSIPropagation list")
     if __DEMO_MODE and (target_list[0].name not in os.listdir("./model/ann_models/")):
         print("1")

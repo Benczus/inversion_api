@@ -10,6 +10,7 @@ from deap import tools
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 
+from inversion.WiFiRSSIPropagation import WifiRSSIPropagation
 from util.util import setup_logger, calculate_spherical_coordinates
 
 current_datetime = datetime.now()
@@ -22,7 +23,7 @@ ga_logger = setup_logger('ga_invert',
 class GAInverter():
 
     def __init__(self, index, ind_size, pop_size, elite_count, df_list_unscaled, CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
-                 OUTPUT_TOLERANCE, wifiRSSIPropagation_list):
+                 OUTPUT_TOLERANCE, wifiRSSIPropagation_list, _DEMO_MODE):
         ga_logger.info("Instantiated GA_Inverter class")
         self.creator = creator
         self.index = index
@@ -31,12 +32,13 @@ class GAInverter():
         self.POP_SIZE = pop_size
         self.elite_count = elite_count
         self.df_list_unscaled = df_list_unscaled
-        self.wifiRSSIPropagation_list = wifiRSSIPropagation_list
+        self.wifiRSSIPropagation_list:WifiRSSIPropagation= wifiRSSIPropagation_list
         self.CXPB = CXPB;
         self.MUTPB = MUTPB;
         self.NGEN = NGEN;
         self.DESIRED_OUTPUT = DESIRED_OUTPUT;
         self.OUTPUT_TOLERANCE = OUTPUT_TOLERANCE
+        self._DEMO_MODE=_DEMO_MODE
         self.__initialize_invertion_functions()
 
     def __creator_function(self):
@@ -57,11 +59,15 @@ class GAInverter():
             "X: {}, Y: {}, Z: {}, X_Y: {}, X_Y_Z: {}, R: {}, Theta: {}, Phi: {}".format(x, y, z, x_y, x_y_z, r, tetha,
                                                                                         phi))
         ga_logger.info("Done generate_individual method")
-        return self.scaler_list[self.index].transform([[x, y, z, x_y, x_y_z, r, tetha, phi, 0]]).tolist()[0][:-1]
+        return self.wifiRSSIPropagation_list[self.index].scaler.transform([[x, y, z, x_y, x_y_z, r, tetha, phi, 0]]).tolist()[0][:-1]
 
     def mean_squared_error(self, individual, regressor, y_pred):
         ga_logger.info("Called evaluate method")
-        d = mean_squared_error((regressor.predict(np.asarray(individual).reshape(1, -1))), y_pred)
+        #print(type(y_pred))
+        if type(y_pred) is float or int:
+            d = mean_squared_error((regressor.predict(np.asarray(individual).reshape(1, -1))), [y_pred])
+        else:
+            d = mean_squared_error((regressor.predict(np.asarray(individual).reshape(1, -1))), y_pred)
         return d
 
     def r2_score(self, individual, regressor, y_pred):
@@ -80,18 +86,30 @@ class GAInverter():
         self.toolbox.register("mutate", tools.mutShuffleIndexes)
         self.toolbox.register("selectWorst", tools.selWorst)
         self.toolbox.register("selectBest", tools.selBest)
-        self.toolbox.register("score", self.mean_squared_error())
-        self.toolbox.register("score_r2", self.r2_score())
+        #self.toolbox.register("score", self.mean_squared_error())
+        #self.toolbox.register("score_r2", self.r2_score())
         ga_logger.info("Done initialize_invertion_functions method")
 
     def __initial_generation(self, y_predict, wifiRSSIPropagation):
         fitnesses = list()
         # First pass
-        fitnesses = self.__evaluate_individuals(wifiRSSIPropagation.model,
-                                                wifiRSSIPropagation.scaler.transform(
-                                                    np.append(np.zeros(wifiRSSIPropagation.model.coefs_[0].shape[0]),
-                                                              self.DESIRED_OUTPUT)
-                                                )[0][-1], fitnesses)
+
+
+        if self._DEMO_MODE:
+            print("DEMO")
+            fitnesses = self.__evaluate_individuals(wifiRSSIPropagation.model,
+                                                    wifiRSSIPropagation.scaler.transform([
+                                                        np.append(
+                                                            np.zeros(wifiRSSIPropagation.model.coefs_[0].shape[0]),
+                                                            self.DESIRED_OUTPUT)]
+                                                    )[0][-1], fitnesses)
+        else:
+            fitnesses = self.__evaluate_individuals(wifiRSSIPropagation.model,
+                                                    wifiRSSIPropagation.scaler.transform(
+                                                        np.append(
+                                                            np.zeros(wifiRSSIPropagation.model.coefs_[0].shape[0]),
+                                                            self.DESIRED_OUTPUT)
+                                                    )[0][-1], fitnesses)
         return fitnesses
 
     def __generate_inverted_population(self, y_predict, wifiRSSIPropagation):
@@ -113,6 +131,7 @@ class GAInverter():
     def __generate_offspings(self, offsprings):
         ga_logger.info("Started __generate_offspings method")
         for index, offspring in enumerate(offsprings):
+            #TODO BUG HERE: CHOOSES 2 ELEMENT FROM 1 ELEMENT LONG LIST IN DEMO MODE
             parents = tools.selRoulette(self.pop, 2)
             parents = list(map(self.toolbox.clone, parents))
             offsprings[index] = tools.cxTwoPoint(parents[0], parents[1])[0]
@@ -124,7 +143,7 @@ class GAInverter():
         ga_logger.info("Started __evaluate_invalid_individuals method")
         invalid_ind = [ind for ind in offsprings if not ind.fitness.valid]
         for index, individual in enumerate(invalid_ind):
-            fitnesses.append(self.toolbox.score(individual, model, outcome))
+            fitnesses.append(self.mean_squared_error(individual, model, outcome))
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit
         ga_logger.info("Done __evaluate_invalid_individuals method")
@@ -133,10 +152,14 @@ class GAInverter():
     def __evaluate_individuals(self, model, outcome, fitnesses):
         ga_logger.info("Started __evaluate_individuals method")
         for index, individual in enumerate(self.pop):
-            temp = self.toolbox.score(individual, model, outcome[index])
+            temp = self.mean_squared_error(individual, model, outcome)
         fitnesses.append(temp)
-        for ind, fit in zip(self.pop, fitnesses):
-            ind.fitness.values = fit
+        if isinstance(fitnesses[0], list):
+            for ind, fit in zip(self.pop, fitnesses):
+                ind.fitness.values = fit
+        else:
+            for ind, fit in zip(self.pop, [fitnesses]):
+                ind.fitness.values = fit
         ga_logger.info("Done __evaluate_individuals method")
         return fitnesses
 

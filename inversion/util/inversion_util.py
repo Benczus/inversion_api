@@ -14,12 +14,12 @@ pred_util_logger = setup_logger('util',
 
 
 def get_possible_inputs(list_of_inputs, ann_comp_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
-                        OUTPUT_TOLERANCE, target_list):
+                        OUTPUT_TOLERANCE, target_list, __DEMO_MODE):
     pred_util_logger.info("Started get_output_list method")
     predicted_outputs_list = []
     for inputs_by_time in list_of_inputs:
         prediction = __predict_position(inputs_by_time, ann_comp_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN,
-                                        DESIRED_OUTPUT, OUTPUT_TOLERANCE, target_list)
+                                        DESIRED_OUTPUT, OUTPUT_TOLERANCE, target_list, __DEMO_MODE)
         predicted_outputs_list.append(prediction)
         pred_util_logger.info("Current prediction: {}".format(prediction))
     pred_util_logger.info("Done get_output_list method")
@@ -27,7 +27,7 @@ def get_possible_inputs(list_of_inputs, ann_comp_list, df_list, df_list_unscaled
 
 
 def __predict_position(inputs, ann_comp_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN, DESIRED_OUTPUT,
-                       OUTPUT_TOLERANCE, target_list):
+                       OUTPUT_TOLERANCE, target_list, __DEMO_MODE):
     pred_util_logger.info("Started predict_position method")
     output_dict = {}
     for RSSI, value in inputs.items():
@@ -35,7 +35,7 @@ def __predict_position(inputs, ann_comp_list, df_list, df_list_unscaled, CXPB, M
             if target.name == RSSI:
                 x_train, x_test, y_train, y_test = train_test_split(df_list[index], target)
                 inverter = GAInverter.GAInverter(index, x_test.iloc[0].size, len(x_test.index), 10, df_list_unscaled,
-                                                 CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE, ann_comp_list)
+                                                 CXPB, MUTPB, NGEN, DESIRED_OUTPUT, OUTPUT_TOLERANCE, ann_comp_list, __DEMO_MODE)
                 y_pred = ann_comp_list[index].model.predict(x_test)
                 pred_util_logger.debug("Predicted y value:{}".format(y_pred))
                 output = inverter.invert(y_pred, ann_comp_list[index])
