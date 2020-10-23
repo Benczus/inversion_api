@@ -130,8 +130,11 @@ class GAInverter():
 
     def __generate_offspings(self, offsprings):
         ga_logger.info("Started __generate_offspings method")
+        print(offsprings)
         for index, offspring in enumerate(offsprings):
             #TODO BUG HERE: CHOOSES 2 ELEMENT FROM 1 ELEMENT LONG LIST IN DEMO MODE
+            #print(list((getattr(ind, "fitness").values for ind in offsprings)))
+            print(sum(getattr(ind, "fitness").values[0] for ind in offsprings))
             parents = tools.selRoulette(self.pop, 2)
             parents = list(map(self.toolbox.clone, parents))
             offsprings[index] = tools.cxTwoPoint(parents[0], parents[1])[0]
@@ -180,11 +183,15 @@ class GAInverter():
 
     def __optimize_population(self, y_predict, wifiRSSIPropagation, threshold=2):
         for g in range(self.NGEN):
+            #TODO EMPTY offsprings
             elites = self.toolbox.selectBest(self.pop, k=self.elite_count)
             elites = list(map(self.toolbox.clone, elites))
+            #print(elites)
             ga_logger.debug("Chosen elites: {}".format(elites))
             offsprings = self.toolbox.selectWorst(self.pop, k=self.POP_SIZE - self.elite_count)
             offsprings = list(map(self.toolbox.clone, offsprings))
+            print(offsprings)
+
             parents, offsprings = self.__generate_offspings(offsprings)
             ga_logger.debug("Generated parents: {} and offsprings: iteration {}".format(parents, offsprings))
             fitnesses, invalid_ind = self.__evaluate_invalid_individuals(offsprings, fitnesses)
