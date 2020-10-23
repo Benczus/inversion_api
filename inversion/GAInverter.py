@@ -29,7 +29,10 @@ class GAInverter():
         self.index = index
         self.toolbox = base.Toolbox()
         self.IND_SIZE = ind_size
-        self.POP_SIZE = pop_size
+        if _DEMO_MODE:
+            self.POP_SIZE=1
+        else:
+            self.POP_SIZE = pop_size
         self.elite_count = elite_count
         self.df_list_unscaled = df_list_unscaled
         self.wifiRSSIPropagation_list:WifiRSSIPropagation= wifiRSSIPropagation_list
@@ -63,7 +66,10 @@ class GAInverter():
 
     def mean_squared_error(self, individual, regressor, y_pred):
         ga_logger.info("Called evaluate method")
-        #print(type(y_pred))
+        #print("individual", individual)
+        #TODO AFTER INITIAL GENERATION, IT GENERATES 142 instead of 1. SETTING POP_SIZE TO 1 IF DEMO MODE IS ACTIVE CHANGES THE INITIAL GENERATION, BUT NOT THE OPTIMIZATION STEPS!HELÓ
+        print("individual prediction: ",(regressor.predict(np.asarray(individual).reshape(1, -1))))
+        print("y_pred", y_pred)
         if type(y_pred) is float or int:
             d = mean_squared_error((regressor.predict(np.asarray(individual).reshape(1, -1))), [y_pred])
         else:
@@ -80,6 +86,7 @@ class GAInverter():
         self.creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
         self.creator.create("Individual", list, fitness=creator.FitnessMin)
         # toolbox.register("attr_float", random.random())
+
         self.toolbox.register("population", tools.initRepeat, list, self.__creator_function, n=self.POP_SIZE)
         self.pop = self.toolbox.population()
         self.toolbox.register("mate", tools.cxTwoPoint)
@@ -93,8 +100,6 @@ class GAInverter():
     def __initial_generation(self, y_predict, wifiRSSIPropagation):
         fitnesses = list()
         # First pass
-
-
         if self._DEMO_MODE:
             print("DEMO")
             fitnesses = self.__evaluate_individuals(wifiRSSIPropagation.model,
@@ -116,37 +121,44 @@ class GAInverter():
         ga_logger.info("Started __generate_inverted_population method")
         fitnesses = self.__initial_generation(y_predict, wifiRSSIPropagation)
         ga_logger.debug("Initial fitness values {}".format(fitnesses))
-        optimized_pop = self.__optimize_population(y_predict, wifiRSSIPropagation)
+        optimized_pop = self.__optimize_population(y_predict, wifiRSSIPropagation, fitnesses)
         ga_logger.info("Done __generate_inverted_population method")
         return optimized_pop
 
     def __create_new_generation(self, elites, offsprings):
         ga_logger.info("Started __create_new_generation method")
-        for i in range(self.elite_count):
-            self.pop[i] = elites[i]
-        for i in range(self.POP_SIZE - self.elite_count):
-            self.pop[i + self.elite_count] = offsprings[i]
+        if self._DEMO_MODE:
+            for i in range(len(self.pop) // 2):
+                self.pop[i] = elites[i]
+            for i in range((len(self.pop) // 2)+1,len(self.pop)-1):
+                self.pop[i + self.elite_count] = offsprings[i]
+        else:
+            for i in range(self.elite_count):
+                self.pop[i] = elites[i]
+            for i in range(self.POP_SIZE - self.elite_count):
+                self.pop[i + self.elite_count] = offsprings[i]
         ga_logger.info("Done __create_new_generation method")
 
     def __generate_offspings(self, offsprings):
         ga_logger.info("Started __generate_offspings method")
-        print(offsprings)
+        #print(offsprings)
+        parents = tools.selRoulette(self.pop, 2)
+        parents = list(map(self.toolbox.clone, parents))
         for index, offspring in enumerate(offsprings):
             #TODO BUG HERE: CHOOSES 2 ELEMENT FROM 1 ELEMENT LONG LIST IN DEMO MODE
             #print(list((getattr(ind, "fitness").values for ind in offsprings)))
-            print(sum(getattr(ind, "fitness").values[0] for ind in offsprings))
-            parents = tools.selRoulette(self.pop, 2)
-            parents = list(map(self.toolbox.clone, parents))
+            #print(getattr(offspring, "fitness"))
+            #print(sum(getattr(ind, "fitness").values[0] for ind in offsprings))
             offsprings[index] = tools.cxTwoPoint(parents[0], parents[1])[0]
             del offspring.fitness.values
         ga_logger.info("Done __generate_offspings method")
         return parents, offsprings
 
-    def __evaluate_invalid_individuals(self, offsprings, model, outcome, fitnesses):
+    def __evaluate_invalid_individuals(self, offsprings, model, y_predict, fitnesses):
         ga_logger.info("Started __evaluate_invalid_individuals method")
         invalid_ind = [ind for ind in offsprings if not ind.fitness.valid]
         for index, individual in enumerate(invalid_ind):
-            fitnesses.append(self.mean_squared_error(individual, model, outcome))
+            fitnesses.append(self.mean_squared_error(individual, model, y_predict))
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit
         ga_logger.info("Done __evaluate_invalid_individuals method")
@@ -161,8 +173,8 @@ class GAInverter():
             for ind, fit in zip(self.pop, fitnesses):
                 ind.fitness.values = fit
         else:
-            for ind, fit in zip(self.pop, [fitnesses]):
-                ind.fitness.values = fit
+            for ind in self.pop:
+                ind.fitness.values = fitnesses
         ga_logger.info("Done __evaluate_individuals method")
         return fitnesses
 
@@ -181,20 +193,20 @@ class GAInverter():
         ga_logger.info("Done invert method")
         return dataset_inverted
 
-    def __optimize_population(self, y_predict, wifiRSSIPropagation, threshold=2):
+    def __optimize_population(self, y_predict, wifiRSSIPropagation, fitnesses, threshold=2):
         for g in range(self.NGEN):
-            #TODO EMPTY offsprings
+            #TODO EMPTY offsprings fitness
             elites = self.toolbox.selectBest(self.pop, k=self.elite_count)
             elites = list(map(self.toolbox.clone, elites))
-            #print(elites)
             ga_logger.debug("Chosen elites: {}".format(elites))
             offsprings = self.toolbox.selectWorst(self.pop, k=self.POP_SIZE - self.elite_count)
             offsprings = list(map(self.toolbox.clone, offsprings))
-            print(offsprings)
+
 
             parents, offsprings = self.__generate_offspings(offsprings)
             ga_logger.debug("Generated parents: {} and offsprings: iteration {}".format(parents, offsprings))
-            fitnesses, invalid_ind = self.__evaluate_invalid_individuals(offsprings, fitnesses)
+            fitnesses, invalid_ind = self.__evaluate_invalid_individuals(offsprings, wifiRSSIPropagation.model,
+                                                                         y_predict, fitnesses)
             self.__create_new_generation(elites, offsprings)
             fitnesses = self.__evaluate_individuals(wifiRSSIPropagation.model, y_predict, fitnesses)
             ga_logger.debug("Fitness values at the {}. iteration {}".format(g, fitnesses))
