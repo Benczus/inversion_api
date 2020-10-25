@@ -8,6 +8,7 @@ from sklearn.neural_network import MLPRegressor
 LOWER_BOUNDS = 0
 UPPER_BOUNDS = 1
 
+
 class MLPInverter:
     regressor: MLPRegressor
     bounds: Tuple[np.ndarray, np.ndarray]
@@ -15,7 +16,7 @@ class MLPInverter:
     def __init__(self, regressor: MLPRegressor, bounds: Tuple[np.ndarray, np.ndarray] = None):
         self.regressor: regressor
         INPUT_LAYER_SIZE = regressor.coefs_[0].shape[0]
-        if(bounds == None or
+        if (bounds is None or
                 len(bounds) != 2 or
                 len(bounds[LOWER_BOUNDS]) != INPUT_LAYER_SIZE or
                 len(bounds[UPPER_BOUNDS]) != INPUT_LAYER_SIZE):
@@ -32,7 +33,7 @@ class MLPInverter:
     def invert(self, desired_output: np.ndarray) -> List[np.ndarray]:
         pass
 
-    def score(self, desired_output: np.ndarray, metric: Callable[[np.ndarray, np.ndarray], float]) -> float:
+    def score(self, desired_output: np.ndarray, metric: Callable[[np.ndarray, List[np.ndarray]], float]) -> float:
         return metric(desired_output, self.predict(self.invert(desired_output)))
 
     def score_r2(self, desired_output: np.ndarray) -> float:
