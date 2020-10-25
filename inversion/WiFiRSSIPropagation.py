@@ -1,4 +1,5 @@
 import pickle
+from sklearn.neural_network import MLPRegressor
 from datetime import datetime
 
 from util.util import setup_logger
@@ -11,6 +12,11 @@ ann_logger = setup_logger('ga_invert',
 
 
 class WifiRSSIPropagation():
+
+    name : str
+    model : MLPRegressor
+    scaler : None
+
     def __init__(self, name, model, scaler):
         ann_logger.info("Instantiated GA_Inverter method")
         self.name = name

@@ -15,10 +15,10 @@ class GAMLPInverter(MLPInverter):
     def __init__(self,
                  regressor: MLPRegressor,
                  bounds: Tuple[np.ndarray, np.ndarray] = None,
-                 population_size=100,
-                 elite_count=10,
-                 mutation_rate=0.01,
-                 max_generations=1e4):
+                 population_size : int =100,
+                 elite_count : int =10,
+                 mutation_rate : float =0.01,
+                 max_generations : int =1e4):
         super().__init__(regressor, bounds)
         self.population_size = population_size
         self.elite_count = elite_count
