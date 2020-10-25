@@ -30,7 +30,10 @@ class GAMLPInverter(MLPInverter):
     def invert(self,
                desired_output: np.ndarray) -> List[np.ndarray]:
 
-        INPUT_LAYER_SIZE = self.regressor.coefs_[0].shape[0]
+        population = self._init_ga_population()
+        fitness_values = [ self.__fitness(individual, desired_output) for individual in population]
+        sorted_fitness, sorted_population = zip(*sorted(zip(fitness_values, population)))
+        print(sorted_fitness,sorted_population)
 
         return []
 
@@ -49,5 +52,5 @@ class GAMLPInverter(MLPInverter):
 
     def __fitness(self, individual : np.ndarray, desired_output : np.ndarray) -> float:
         return np.sum(
-            (self.regressor.predict(individual)
+            (self.regressor.predict([individual])
             - desired_output)**2)
