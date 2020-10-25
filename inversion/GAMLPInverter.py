@@ -3,8 +3,10 @@ from typing import Tuple, List
 import numpy as np
 from sklearn.neural_network import MLPRegressor
 
-from inversion.util.MLPInverter import MLPInverter
+from inversion.MLPInverter import MLPInverter
 
+LOWER_BOUNDS = 0
+UPPER_BOUNDS = 1
 
 class GAMLPInverter(MLPInverter):
     population_size: int
@@ -27,7 +29,17 @@ class GAMLPInverter(MLPInverter):
 
     def invert(self,
                desired_output: np.ndarray) -> List[np.ndarray]:
+
+        INPUT_LAYER_SIZE = self.regressor.coefs_[0].shape[0]
+
         return []
+
+    def _init_ga_population(self) -> List[np.ndarray]:
+        return [
+            [np.random.uniform(self.bounds[LOWER_BOUNDS][i], self.bounds[UPPER_BOUNDS][i])
+            for i in np.arange(self.regressor.coefs_[0].shape[0])]
+            for p in np.arange(self.population_size)
+        ]
 
     def __crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> np.ndarray:
         return []

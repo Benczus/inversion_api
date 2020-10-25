@@ -7,6 +7,8 @@ from sklearn.neural_network import MLPRegressor
 
 LOWER_BOUNDS = 0
 UPPER_BOUNDS = 1
+BOUNDS_NEGATIVE_INFINITY = -1e5
+BOUNDS_POSITIVE_INFINITY = 1e5
 
 
 class MLPInverter:
@@ -14,15 +16,15 @@ class MLPInverter:
     bounds: Tuple[np.ndarray, np.ndarray]
 
     def __init__(self, regressor: MLPRegressor, bounds: Tuple[np.ndarray, np.ndarray] = None):
-        self.regressor: regressor
+        self.regressor = regressor
         INPUT_LAYER_SIZE = regressor.coefs_[0].shape[0]
         if (bounds is None or
                 len(bounds) != 2 or
                 len(bounds[LOWER_BOUNDS]) != INPUT_LAYER_SIZE or
                 len(bounds[UPPER_BOUNDS]) != INPUT_LAYER_SIZE):
             self.bounds = (
-                np.full(INPUT_LAYER_SIZE, np.ninf),
-                np.full(INPUT_LAYER_SIZE, np.inf)
+                np.full(INPUT_LAYER_SIZE, BOUNDS_NEGATIVE_INFINITY ),
+                np.full(INPUT_LAYER_SIZE, BOUNDS_POSITIVE_INFINITY)
             )
         else:
             self.bounds = bounds
