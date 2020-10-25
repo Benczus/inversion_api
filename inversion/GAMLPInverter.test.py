@@ -1,8 +1,9 @@
 import unittest
 
-from inversion.GAMLPInverter import GAMLPInverter
-from sklearn.neural_network import MLPRegressor
 import numpy as np
+from sklearn.neural_network import MLPRegressor
+
+from inversion.GAMLPInverter import GAMLPInverter
 
 
 class MyTestCase(unittest.TestCase):
@@ -13,15 +14,16 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(True, True)
 
     def test_init_ga_popullation(self):
-        X = np.floor(np.random.random((3, 3)) * 10)
-
+        population_size = 10
+        individual_size = 3
+        X = np.floor(np.random.random((individual_size, individual_size)) * 10)
         self.assertEqual(True, True)
-        y = [ [np.sum(x), np.mean(x)] for x in X]
+        y = [[np.sum(x), np.mean(x)] for x in X]
         regressor = MLPRegressor()
-        regressor.fit(X,y)
-        inverter = GAMLPInverter(regressor)
-        print(inverter._init_ga_population())
-
+        regressor.fit(X, y)
+        inverter = GAMLPInverter(regressor, population_size=population_size)
+        initial_population = inverter._init_ga_population()
+        self.assertEqual(initial_population.shape, (population_size, individual_size))
 
 
 if __name__ == '__main__':

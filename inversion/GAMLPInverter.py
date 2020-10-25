@@ -35,11 +35,11 @@ class GAMLPInverter(MLPInverter):
         return []
 
     def _init_ga_population(self) -> List[np.ndarray]:
-        return [
+        return np.array([
             [np.random.uniform(self.bounds[LOWER_BOUNDS][i], self.bounds[UPPER_BOUNDS][i])
             for i in np.arange(self.regressor.coefs_[0].shape[0])]
             for p in np.arange(self.population_size)
-        ]
+        ])
 
     def __crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> np.ndarray:
         return []
