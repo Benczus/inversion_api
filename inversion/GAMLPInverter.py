@@ -63,12 +63,12 @@ class GAMLPInverter(MLPInverter):
         population = self._init_ga_population()
         for _ in range(self.max_generations):
             fitness_values = [self.__fitness(individual, desired_output) for individual in population]
-            sorted_fitnesses, sorted_offsprings = self.__sort_select(fitness_values, population)
+            sorted_fitnesses, sorted_offsprings = self.__sort_by_fitness(fitness_values, population)
             elites = sorted_offsprings[0:self.elite_count]
             offsprings = sorted_offsprings[self.elite_count:]
             crossed_mutated_offsprings=[]
             for i in range(self.population_size - self.elite_count):
-                parents=self.__selection(sorted_fitnesses[self.elite_count:], offsprings)
+                parents=self.__selection(sorted_fitnesses, sorted_offsprings)
                 crossed_mutated_offsprings.append(self.__mutate(self.__crossover(parents[0], parents[1])))
             population = [*elites, *crossed_mutated_offsprings]
         return population
@@ -97,12 +97,15 @@ class GAMLPInverter(MLPInverter):
         return individual
         #return np.array([element*random() for element in individual if random()<self.mutation_rate])
 
-    def __selection(self, fitnesses:np.ndarray, population:List[np.ndarray])-> Tuple[
+    def __selection(self, fitnesses:np.ndarray, population:List[np.ndarray], strategy=None)-> Tuple[
         np.ndarray, np.ndarray]:
-        return choice(population), choice(population)
 
+        if strategy is None:
+            return choice(population), choice(population)
+        else:
+            return strategy(population), strategy(population)
 
-    def __sort_select(self,  fitnesses:np.ndarray, population:List[np.ndarray]):
+    def __sort_by_fitness(self, fitnesses:np.ndarray, population:List[np.ndarray]):
         fitness_values, sorted_population=zip(*sorted(zip(fitnesses, population)))
         return fitness_values,sorted_population
 
