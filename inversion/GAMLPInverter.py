@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, random, choice
 from typing import Tuple, List, Union, Any
 
 import numpy as np
@@ -47,30 +47,30 @@ class GAMLPInverter(MLPInverter):
         '''
         Algorithm:
         1. INITIAL FITNESS GENERATION
-        2. GENERATE FIRST NEW GENERATION
-        3.    GENERATE ELITES
-        4.    GENERATE NEW ELEMENTS BESIDES ELITES
-
-        5. CYCLE GENERATE NEW GENERATION UNTIL REACHING GENERATION N
-        6.    CROSSOVER
-        7.    MUTATION
-        8.    EVALUATION
-        9. AFTER GENERATION N, THE OUTPUTS ARE IN THE LAST POPULATION
+        2. CYCLE GENERATE NEW GENERATION UNTIL REACHING GENERATION N
+        3.  CALCULATE FITNESS VALUE FOR POPULATION
+        4.  SELECT BEST PERFORMING INDIVIDUALS BASED ON FITNESS VALUES
+        5.  SELECT ELITES AND NON-ELITE OFFSPRINGS
+        6.  CROSS OVER NON-ELITE OFFSPRIGS
+        7.  CALCULATE FITNESS FOR CROSSED OFFSPRING
+        8.  SELECT CROSSED OFFSPRINGS WITH BIGGEST FITNESS
+        9.  MUTATE SELECTED OFFSPRINGS
+        10. ASSEMBLE NEW POPULATION FROM ELITES AND SELECTED MUTATED, CROSSED OFFSPRINGS
+        . AFTER GENERATION N, THE OUTPUTS ARE IN THE LAST POPULATION
         :param desired_output: The y value to be inverted
         :return: inverted values of self.regressor's desired output
         '''
         population = self._init_ga_population()
         for _ in range(self.max_generations):
             fitness_values = [self.__fitness(individual, desired_output) for individual in population]
-            selected_fitnesses, selected_offsprings = self.__selection(fitness_values, population)
-            elites = selected_offsprings[0:self.elite_count]
-            offsprings = selected_offsprings[self.elite_count:]
-            crossed_offsprings=[self.__crossover(parent1, parent2) for parent1 in offsprings for parent2 in offsprings] # TODO
-            crossed_fitness=[self.__fitness(offsprings, desired_output) for offsprings in crossed_offsprings]
-            selected_offspring_fitness, selected_offsprings = self.__selection(crossed_fitness,crossed_offsprings)
-            crossed_offsprings= selected_offsprings[self.elite_count:len(population)]
-            mutated_offsprings = [self.__mutate(individual) for individual in crossed_offsprings] # TODO
-            population = [*elites, *mutated_offsprings]
+            sorted_fitnesses, sorted_offsprings = self.__sort_select(fitness_values, population)
+            elites = sorted_offsprings[0:self.elite_count]
+            offsprings = sorted_offsprings[self.elite_count:]
+            crossed_mutated_offsprings=[]
+            for i in range(self.population_size - self.elite_count):
+                parents=self.__selection(sorted_fitnesses[self.elite_count:], offsprings)
+                crossed_mutated_offsprings.append(self.__mutate(self.__crossover(parents[0], parents[1])))
+            population = [*elites, *crossed_mutated_offsprings]
         return population
 
     def _init_ga_population(self) -> np.ndarray:
@@ -91,16 +91,16 @@ class GAMLPInverter(MLPInverter):
 
 
     def __crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> np.ndarray:
+        #return np.array((np.array(parent_1) * np.array(parent_2)) /2)
         return parent_1
-
     def __mutate(self, individual: np.ndarray) -> np.ndarray:
         return individual
+        #return np.array([element*random() for element in individual if random()<self.mutation_rate])
 
-    def __selection(self, fitnesses:np.ndarray, population:List[np.ndarray], strategy=None):
-        if strategy is None:
-            return self.__sort_select(fitnesses,population)
-        else:
-            return strategy(fitnesses, population)
+    def __selection(self, fitnesses:np.ndarray, population:List[np.ndarray])-> Tuple[
+        np.ndarray, np.ndarray]:
+        return choice(population), choice(population)
+
 
     def __sort_select(self,  fitnesses:np.ndarray, population:List[np.ndarray]):
         fitness_values, sorted_population=zip(*sorted(zip(fitnesses, population)))

@@ -47,5 +47,8 @@ class MLPInverter:
     def score(self, desired_output: np.ndarray, metric: Callable[[np.ndarray, List[np.ndarray]], float]) -> float:
         return metric(desired_output, self.predict(self.invert(desired_output)))
 
-    def score_r2(self, desired_output: np.ndarray) -> float:
+    def mean_squared_error(self, desired_output: np.ndarray) -> float:
         return self.score(desired_output, lambda expected, actual: np.sum((expected - actual) ** 2))
+
+    def mean_absolute_error(self, desired_output: np.ndarray) -> float:
+        return self.score(desired_output, lambda expected, actual: np.abs((expected - actual)))
