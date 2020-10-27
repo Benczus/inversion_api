@@ -98,6 +98,7 @@ class GAInverter():
         ga_logger.info("Done initialize_invertion_functions method")
 
     def __initial_generation(self, y_predict, wifiRSSIPropagation):
+        ga_logger.info("Started __initial_generation method")
         fitnesses = list()
         # First pass
         if self._DEMO_MODE:
@@ -115,12 +116,16 @@ class GAInverter():
                                                             np.zeros(wifiRSSIPropagation.model.coefs_[0].shape[0]),
                                                             self.DESIRED_OUTPUT)
                                                     )[0][-1], fitnesses)
+        ga_logger.info("started __initial_generation method")
         return fitnesses
 
     def __generate_inverted_population(self, y_predict, wifiRSSIPropagation):
         ga_logger.info("Started __generate_inverted_population method")
+        ga_logger.info("Before initial fitness values y_predict: {}".format(y_predict))
+
         fitnesses = self.__initial_generation(y_predict, wifiRSSIPropagation)
         ga_logger.debug("Initial fitness values {}".format(fitnesses))
+        ga_logger.info("After initial fitness values y_predict: {}".format(y_predict))
         optimized_pop = self.__optimize_population(y_predict, wifiRSSIPropagation, fitnesses)
         ga_logger.info("Done __generate_inverted_population method")
         return optimized_pop

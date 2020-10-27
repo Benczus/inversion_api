@@ -17,12 +17,17 @@ def get_possible_inputs(list_of_inputs, ann_comp_list, df_list, df_list_unscaled
                         OUTPUT_TOLERANCE, target_list, __DEMO_MODE):
     pred_util_logger.info("Started get_output_list method")
     predicted_outputs_list = []
-    for inputs_by_time in list_of_inputs:
-        prediction = __predict_position(inputs_by_time, ann_comp_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN,
-                                        DESIRED_OUTPUT, OUTPUT_TOLERANCE, target_list, __DEMO_MODE)
-        predicted_outputs_list.append(prediction)
-        pred_util_logger.info("Current prediction: {}".format(prediction))
-    pred_util_logger.info("Done get_output_list method")
+
+    if __DEMO_MODE:
+        pass #TODO WRITE SINGLE INVERTION
+    else:
+
+        for inputs_by_time in list_of_inputs:
+            prediction = __predict_position(inputs_by_time, ann_comp_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN,
+                                            DESIRED_OUTPUT, OUTPUT_TOLERANCE, target_list, __DEMO_MODE)
+            predicted_outputs_list.append(prediction)
+            pred_util_logger.info("Current prediction: {}".format(prediction))
+        pred_util_logger.info("Done get_output_list method")
     return predicted_outputs_list
 
 
@@ -34,6 +39,9 @@ def __predict_position(inputs, ann_comp_list, df_list, df_list_unscaled, CXPB, M
         for RSSI, value in inputs.items():
             for index, target in enumerate(target_list):
                 if target.name == RSSI:
+
+
+
                     x_train, x_test, y_train, y_test = train_test_split(df_list[index], target)
                     #TODO population size and individual size is set here!
                     print("x_test {}".format(x_test.iloc[0].size))

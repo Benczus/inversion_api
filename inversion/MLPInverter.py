@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Callable
 from typing import List
 from typing import Tuple
@@ -5,10 +6,18 @@ from typing import Tuple
 import numpy as np
 from sklearn.neural_network import MLPRegressor
 
+from util.util import setup_logger
+
 LOWER_BOUNDS = 0
 UPPER_BOUNDS = 1
 BOUNDS_NEGATIVE_INFINITY = -1e5
 BOUNDS_POSITIVE_INFINITY = 1e5
+
+current_datetime = datetime.now()
+ga_logger = setup_logger('ga_invert',
+                         "log/ga_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
+                                                         current_datetime.day,
+                                                         current_datetime.hour))
 
 
 class MLPInverter:
