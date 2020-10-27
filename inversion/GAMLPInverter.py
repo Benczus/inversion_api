@@ -24,8 +24,8 @@ class GAMLPInverter(MLPInverter):
                  regressor: MLPRegressor,
                  bounds: Tuple[np.ndarray, np.ndarray] = None,
                  population_size: int = 100,
-                 elite_count: int = 10,
-                 # (population_size // 10) if (not population_size // 10 > 0) else (population_size // 2),
+                 elite_count: int = 10, # (population_size // 10) if (not population_size // 10 > 0) else (population_size // 2),
+
                  mutation_rate: float = 0.01,
                  max_generations: int = int(1e4)):
         '''
@@ -76,14 +76,19 @@ class GAMLPInverter(MLPInverter):
     def __init_ga_population(self) -> List[List[Union[int, Any]]]:
         ga_logger.info("Started generate_individual method")
         ga_logger.info("Done generate_individual method")
-        return [[x := (randint(self.bounds[LOWER_BOUNDS][0], self.bounds[UPPER_BOUNDS][0])),
-                 y := randint(self.bounds[LOWER_BOUNDS][1], self.bounds[UPPER_BOUNDS][1]),
-                 z := randint(self.bounds[LOWER_BOUNDS][2], self.bounds[UPPER_BOUNDS][2]),
-                 x * y,
-                 x * y * z,
-                 *calculate_spherical_coordinates(x, y, z)]
-                for _ in np.arange(self.population_size)
-                ]
+        # return [[x := (randint(self.bounds[LOWER_BOUNDS][0], self.bounds[UPPER_BOUNDS][0])),
+        #          y := randint(self.bounds[LOWER_BOUNDS][1], self.bounds[UPPER_BOUNDS][1]),
+        #          z := randint(self.bounds[LOWER_BOUNDS][2], self.bounds[UPPER_BOUNDS][2]),
+        #          x * y,
+        #          x * y * z,
+        #          *calculate_spherical_coordinates(x, y, z)]
+        #         for _ in np.arange(self.population_size)
+        #         ]
+        return [
+            [np.random.uniform(self.bounds[LOWER_BOUNDS][i], self.bounds[UPPER_BOUNDS][i])
+            for i in np.arange(self.regressor.coefs_[0].shape[0])]
+            for _ in np.arange(self.population_size)
+        ]
 
     def __crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> np.ndarray:
         return parent_1
