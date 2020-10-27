@@ -24,8 +24,7 @@ class GAMLPInverter(MLPInverter):
                  regressor: MLPRegressor,
                  bounds: Tuple[np.ndarray, np.ndarray] = None,
                  population_size: int = 100,
-                 elite_count: int = 10, # (population_size // 10) if (not population_size // 10 > 0) else (population_size // 2),
-
+                 elite_count: int = 10,
                  mutation_rate: float = 0.01,
                  max_generations: int = int(1e4)):
         '''
@@ -60,20 +59,21 @@ class GAMLPInverter(MLPInverter):
         :param desired_output: The y value to be inverted
         :return: inverted values of self.regressor's desired output
         '''
-        population = self.__init_ga_population()
-        #print(population)
-        fitness_values = [self.__fitness(individual, desired_output) for individual in population]
-        sorted_fitness, sorted_population = zip(*sorted(zip(fitness_values, population)))
-        elites=sorted_population[0:self.elite_count]
-        offsprings=sorted_population[self.elite_count:]
+        population = self._init_ga_population()
         for _ in range(self.max_generations):
-            crossed_offsprings=[self.__crossover(individual, individual) for individual in offsprings] # TODO
-            offsprings=[*elites, *crossed_offsprings]
-            offsprings = [self.__mutate(individual) for individual in offsprings]
-            fitness_values = [self.__fitness(individual, desired_output) for individual in offsprings]
-        return offsprings
+            fitness_values = [self.__fitness(individual, desired_output) for individual in population]
+            selected_fitnesses, selected_offsprings = self.__selection(fitness_values, population)
+            elites = selected_offsprings[0:self.elite_count]
+            offsprings = selected_offsprings[self.elite_count:]
+            crossed_offsprings=[self.__crossover(parent1, parent2) for parent1 in offsprings for parent2 in offsprings] # TODO
+            crossed_fitness=[self.__fitness(offsprings, desired_output) for offsprings in crossed_offsprings]
+            selected_offspring_fitness, selected_offsprings = self.__selection(crossed_fitness,crossed_offsprings)
+            crossed_offsprings= selected_offsprings[self.elite_count:len(population)]
+            mutated_offsprings = [self.__mutate(individual) for individual in crossed_offsprings] # TODO
+            population = [*elites, *mutated_offsprings]
+        return population
 
-    def __init_ga_population(self) -> List[List[Union[int, Any]]]:
+    def _init_ga_population(self) -> np.ndarray:
         ga_logger.info("Started generate_individual method")
         ga_logger.info("Done generate_individual method")
         # return [[x := (randint(self.bounds[LOWER_BOUNDS][0], self.bounds[UPPER_BOUNDS][0])),
@@ -84,17 +84,27 @@ class GAMLPInverter(MLPInverter):
         #          *calculate_spherical_coordinates(x, y, z)]
         #         for _ in np.arange(self.population_size)
         #         ]
-        return [
+        return np.array([
             [np.random.uniform(self.bounds[LOWER_BOUNDS][i], self.bounds[UPPER_BOUNDS][i])
             for i in np.arange(self.regressor.coefs_[0].shape[0])]
-            for _ in np.arange(self.population_size)
-        ]
+            for p in np.arange(self.population_size)])
+
 
     def __crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> np.ndarray:
         return parent_1
 
     def __mutate(self, individual: np.ndarray) -> np.ndarray:
         return individual
+
+    def __selection(self, fitnesses:np.ndarray, population:List[np.ndarray], strategy=None):
+        if strategy is None:
+            return self.__sort_select(fitnesses,population)
+        else:
+            return strategy(fitnesses, population)
+
+    def __sort_select(self,  fitnesses:np.ndarray, population:List[np.ndarray]):
+        fitness_values, sorted_population=zip(*sorted(zip(fitnesses, population)))
+        return fitness_values,sorted_population
 
     def __fitness(self, individual: np.ndarray, desired_output: np.ndarray) -> float:
         return float(np.sum(
