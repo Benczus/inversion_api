@@ -1,4 +1,4 @@
-from random import random, choice
+from random import random, choice, randint
 from typing import Tuple, List, Union, Any
 
 import numpy as np
@@ -66,7 +66,7 @@ class GAMLPInverter(MLPInverter):
             elites = sorted_offsprings[0:self.elite_count]
             crossed_mutated_offsprings = []
             for i in range(self.population_size - self.elite_count):
-                parents = self.__selection(sorted_fitnesses, sorted_offsprings, strategy=self.__rank_selection)
+                parents = self.__selection(sorted_fitnesses, sorted_offsprings, strategy=self.__tournament_selection)
                 crossed_mutated_offsprings.append(self.__mutate(self.__crossover(parents[0], parents[1])))
             population = [*elites, *crossed_mutated_offsprings]
         fitness_values, population = self.__sort_by_fitness(fitness_values, population)
@@ -113,7 +113,7 @@ class GAMLPInverter(MLPInverter):
         return offspring
 
     def arithmetic_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray):
-        return list((np.array(parent_1) * np.array(parent_2)) / 2)
+        return list((np.array(parent_1) + np.array(parent_2)) / 2)
 
     # General mutation strategies do not apply to regressor inversion!
     def __mutate(self, individual: np.ndarray, strategy=None) -> np.ndarray:
@@ -137,7 +137,14 @@ class GAMLPInverter(MLPInverter):
         return sorted_population[0], sorted_population[1]
 
     def __tournament_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
-        pass
+        indexes=[randint(0, len(population)-1) for i in range(5)]
+        fit_ind, pop_ind = [], []
+        for index in indexes:
+            fit_ind.append(fitnesses[index])
+            pop_ind.append((population[index]))
+        sorted_fit, sorted_pop= self.__sort_by_fitness(fit_ind, pop_ind)
+        return sorted_pop[0], sorted_pop[1]
+
 
     def __roulette_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
         pass
