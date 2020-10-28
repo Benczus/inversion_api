@@ -1,11 +1,10 @@
-from random import randint, random, choice
+from random import random, choice
 from typing import Tuple, List, Union, Any
 
 import numpy as np
 from sklearn.neural_network import MLPRegressor
 
 from inversion.MLPInverter import MLPInverter, ga_logger
-from util.util import calculate_spherical_coordinates
 
 LOWER_BOUNDS = 0
 UPPER_BOUNDS = 1
@@ -25,7 +24,7 @@ class GAMLPInverter(MLPInverter):
                  bounds: Tuple[np.ndarray, np.ndarray] = None,
                  population_size: int = 100,
                  elite_count: int = 10,
-                 mutation_rate: float = 0.01,
+                 mutation_rate: float = 0.1,
                  max_generations: int = int(1e4)):
         '''
 
@@ -65,12 +64,12 @@ class GAMLPInverter(MLPInverter):
             fitness_values = [self.__fitness(individual, desired_output) for individual in population]
             sorted_fitnesses, sorted_offsprings = self.__sort_by_fitness(fitness_values, population)
             elites = sorted_offsprings[0:self.elite_count]
-            offsprings = sorted_offsprings[self.elite_count:]
-            crossed_mutated_offsprings=[]
+            crossed_mutated_offsprings = []
             for i in range(self.population_size - self.elite_count):
-                parents=self.__selection(sorted_fitnesses, sorted_offsprings)
+                parents = self.__selection(sorted_fitnesses, sorted_offsprings, strategy=self.__rank_selection)
                 crossed_mutated_offsprings.append(self.__mutate(self.__crossover(parents[0], parents[1])))
             population = [*elites, *crossed_mutated_offsprings]
+        fitness_values, population = self.__sort_by_fitness(fitness_values, population)
         return population
 
     def _init_ga_population(self) -> np.ndarray:
@@ -86,28 +85,66 @@ class GAMLPInverter(MLPInverter):
         #         ]
         return np.array([
             [np.random.uniform(self.bounds[LOWER_BOUNDS][i], self.bounds[UPPER_BOUNDS][i])
-            for i in np.arange(self.regressor.coefs_[0].shape[0])]
+             for i in np.arange(self.regressor.coefs_[0].shape[0])]
             for p in np.arange(self.population_size)])
 
+    def __crossover(self, parent_1: np.ndarray, parent_2: np.ndarray, strategy=None) -> Union[list, Any]:
+        if strategy is None:
+            return self.arithmetic_crossover(parent_1, parent_2)
 
-    def __crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> np.ndarray:
-        #return np.array((np.array(parent_1) * np.array(parent_2)) /2)
-        return parent_1
-    def __mutate(self, individual: np.ndarray) -> np.ndarray:
-        return individual
-        #return np.array([element*random() for element in individual if random()<self.mutation_rate])
+        else:
+            return strategy(parent_1, parent_2)
 
-    def __selection(self, fitnesses:np.ndarray, population:List[np.ndarray], strategy=None)-> Tuple[
+    def one_point_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> List[np.ndarray]:
+        return list(np.append(parent_1[:len(parent_1) // 2], parent_2[len(parent_2) // 2:]))
+
+    def multi_point_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray):
+        return list(np.append(np.append(parent_1[:len(parent_1) // 3],
+                                        parent_2[len(parent_2) // 3:(len(parent_2) // 3) * 2]),
+                              parent_1[(len(parent_1) // 3) * 2:]))
+
+    def uniform_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray):
+        offspring = []
+        for index, element in enumerate(parent_1):
+            if random() > 0.5:
+                offspring.append(parent_1[index])
+            else:
+                offspring.append(parent_2[index])
+        return offspring
+
+    def arithmetic_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray):
+        return list((np.array(parent_1) * np.array(parent_2)) / 2)
+
+    # General mutation strategies do not apply to regressor inversion!
+    def __mutate(self, individual: np.ndarray, strategy=None) -> np.ndarray:
+        if strategy is None:
+            for index, element in enumerate(individual):
+                if random() < self.mutation_rate:
+                    individual[index] = element * np.random.uniform(0.5, 1.5)
+            return individual
+        else:
+            return strategy(individual)
+
+    def __selection(self, fitnesses: np.ndarray, population: List[np.ndarray], strategy=None) -> Tuple[
         np.ndarray, np.ndarray]:
-
         if strategy is None:
             return choice(population), choice(population)
         else:
-            return strategy(population), strategy(population)
+            return strategy(fitnesses, population)
 
-    def __sort_by_fitness(self, fitnesses:np.ndarray, population:List[np.ndarray]):
-        fitness_values, sorted_population=zip(*sorted(zip(fitnesses, population)))
-        return fitness_values,sorted_population
+    def __rank_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
+        sorted_fitnesses, sorted_population = self.__sort_by_fitness(fitnesses, population)
+        return sorted_population[0], sorted_population[1]
+
+    def __tournament_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
+        pass
+
+    def __roulette_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
+        pass
+
+    def __sort_by_fitness(self, fitnesses: np.ndarray, population: List[np.ndarray]):
+        fitness_values, sorted_population = zip(*sorted(zip(fitnesses, list(population))))
+        return fitness_values, sorted_population
 
     def __fitness(self, individual: np.ndarray, desired_output: np.ndarray) -> float:
         return float(np.sum(
