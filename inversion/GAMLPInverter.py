@@ -1,4 +1,3 @@
-from random import random, choice, randint
 from typing import Tuple, List, Union, Any
 
 import numpy as np
@@ -66,7 +65,7 @@ class GAMLPInverter(MLPInverter):
             elites = sorted_offsprings[0:self.elite_count]
             crossed_mutated_offsprings = []
             for i in range(self.population_size - self.elite_count):
-                parents = self.__selection(sorted_fitnesses, sorted_offsprings, strategy=self.__tournament_selection)
+                parents = self.__selection(sorted_fitnesses, sorted_offsprings, strategy=self.__rank_selection)
                 crossed_mutated_offsprings.append(self.__mutate(self.__crossover(parents[0], parents[1])))
             population = [*elites, *crossed_mutated_offsprings]
         fitness_values, population = self.__sort_by_fitness(fitness_values, population)
@@ -95,18 +94,18 @@ class GAMLPInverter(MLPInverter):
         else:
             return strategy(parent_1, parent_2)
 
-    def one_point_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> List[np.ndarray]:
+    def __one_point_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> List[np.ndarray]:
         return list(np.append(parent_1[:len(parent_1) // 2], parent_2[len(parent_2) // 2:]))
 
-    def multi_point_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray):
+    def __multi_point_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray):
         return list(np.append(np.append(parent_1[:len(parent_1) // 3],
                                         parent_2[len(parent_2) // 3:(len(parent_2) // 3) * 2]),
                               parent_1[(len(parent_1) // 3) * 2:]))
 
-    def uniform_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray):
+    def __uniform_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray):
         offspring = []
         for index, element in enumerate(parent_1):
-            if random() > 0.5:
+            if np.random.random() > 0.5:
                 offspring.append(parent_1[index])
             else:
                 offspring.append(parent_2[index])
@@ -119,8 +118,8 @@ class GAMLPInverter(MLPInverter):
     def __mutate(self, individual: np.ndarray, strategy=None) -> np.ndarray:
         if strategy is None:
             for index, element in enumerate(individual):
-                if random() < self.mutation_rate:
-                    individual[index] = element * np.random.uniform(0.5, 1.5)
+                if np.random.random() < self.mutation_rate:
+                    individual[index] = element * np.random.uniform(0.8, 1.2)
             return individual
         else:
             return strategy(individual)
@@ -128,7 +127,7 @@ class GAMLPInverter(MLPInverter):
     def __selection(self, fitnesses: np.ndarray, population: List[np.ndarray], strategy=None) -> Tuple[
         np.ndarray, np.ndarray]:
         if strategy is None:
-            return choice(population), choice(population)
+            return np.random.choice(population), np.random.choice(population)
         else:
             return strategy(fitnesses, population)
 
@@ -136,22 +135,22 @@ class GAMLPInverter(MLPInverter):
         sorted_fitnesses, sorted_population = self.__sort_by_fitness(fitnesses, population)
         return sorted_population[0], sorted_population[1]
 
+    # TODO BUGGED
     def __tournament_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
-        indexes=[randint(0, len(population)-1) for i in range(5)]
+        indexes = [np.random.randint(0, len(population) - 1) for i in range(5)]
         fit_ind, pop_ind = [], []
         for index in indexes:
             fit_ind.append(fitnesses[index])
             pop_ind.append((population[index]))
-        sorted_fit, sorted_pop= self.__sort_by_fitness(fit_ind, pop_ind)
+        sorted_fit, sorted_pop = self.__sort_by_fitness(fit_ind, pop_ind)
         return sorted_pop[0], sorted_pop[1]
-
 
     def __roulette_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
         pass
 
     def __sort_by_fitness(self, fitnesses: np.ndarray, population: List[np.ndarray]):
-        fitness_values, sorted_population = zip(*sorted(zip(fitnesses, list(population))))
-        return fitness_values, sorted_population
+        sorted_fitnesses, sorted_population = zip(*sorted(zip(fitnesses, population), key=lambda x: x[0]))
+        return sorted_fitnesses, sorted_population
 
     def __fitness(self, individual: np.ndarray, desired_output: np.ndarray) -> float:
         return float(np.sum(
