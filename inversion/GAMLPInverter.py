@@ -24,7 +24,9 @@ class GAMLPInverter(MLPInverter):
                  population_size: int = 100,
                  elite_count: int = 10,
                  mutation_rate: float = 0.1,
-                 max_generations: int = int(1e4)):
+                 max_generations: int = int(1e4),
+                 crossover_strategy=None,
+                 selection_strategy=None):
         '''
 
         :param regressor: The invertible neural network structure
@@ -39,6 +41,24 @@ class GAMLPInverter(MLPInverter):
         self.elite_count = elite_count
         self.mutation_rate = mutation_rate
         self.max_generations = max_generations
+
+        if crossover_strategy is None or crossover_strategy == "arithmetic":
+            self.crossover_strategy = self.arithmetic_crossover
+        elif crossover_strategy == "one":
+            self.crossover_strategy = self.__one_point_crossover
+        elif crossover_strategy == "multi":
+            self.crossover_strategy = self.__multi_point_crossover
+        elif crossover_strategy == "uniform":
+            self.crossover_strategy = self.__uniform_crossover
+
+        if selection_strategy is None or selection_strategy == "rank":
+            self.selection_strategy = self.__rank_selection
+        elif selection_strategy == "roulette":
+            self.selection_strategy = self.__roulette_selection
+        elif selection_strategy == "random":
+            self.selection_strategy = self.__random_selection
+        elif selection_strategy == "tournament":
+            self.selection_strategy = self.__tournament_selection
 
     def invert(self,
                desired_output: np.ndarray) -> List[np.ndarray]:
@@ -87,12 +107,8 @@ class GAMLPInverter(MLPInverter):
              for i in np.arange(self.regressor.coefs_[0].shape[0])]
             for p in np.arange(self.population_size)])
 
-    def __crossover(self, parent_1: np.ndarray, parent_2: np.ndarray, strategy=None) -> Union[list, Any]:
-        if strategy is None:
-            return self.arithmetic_crossover(parent_1, parent_2)
-
-        else:
-            return strategy(parent_1, parent_2)
+    def __crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> Union[list, Any]:
+        return self.crossover_strategy(parent_1, parent_2)
 
     def __one_point_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> List[np.ndarray]:
         return list(np.append(parent_1[:len(parent_1) // 2], parent_2[len(parent_2) // 2:]))
@@ -126,10 +142,11 @@ class GAMLPInverter(MLPInverter):
 
     def __selection(self, fitnesses: np.ndarray, population: List[np.ndarray], strategy=None) -> Tuple[
         np.ndarray, np.ndarray]:
-        if strategy is None:
-            return np.random.choice(population), np.random.choice(population)
-        else:
-            return strategy(fitnesses, population)
+        return self.selection_strategy(fitnesses, population)
+
+    def __random_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
+        return population[np.random.randint(0,len(population[0])-1)], population[
+            np.random.randint(0,len(population[0])-1)]
 
     def __rank_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
         sorted_fitnesses, sorted_population = self.__sort_by_fitness(fitnesses, population)
@@ -146,7 +163,8 @@ class GAMLPInverter(MLPInverter):
         return sorted_pop[0], sorted_pop[1]
 
     def __roulette_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
-        pass
+        ga_logger.info("Unimplemented __roulette_selection called, calling __random_selection")
+        return self.__random_selection(fitnesses, population)
 
     def __sort_by_fitness(self, fitnesses: np.ndarray, population: List[np.ndarray]):
         sorted_fitnesses, sorted_population = zip(*sorted(zip(fitnesses, population), key=lambda x: x[0]))
