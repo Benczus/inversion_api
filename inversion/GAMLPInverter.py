@@ -152,7 +152,6 @@ class GAMLPInverter(MLPInverter):
         sorted_fitnesses, sorted_population = self.__sort_by_fitness(fitnesses, population)
         return sorted_population[0], sorted_population[1]
 
-    # TODO BUGGED
     def __tournament_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
         indexes = [np.random.randint(0, len(population) - 1) for i in range(5)]
         fit_ind, pop_ind = [], []
@@ -163,8 +162,16 @@ class GAMLPInverter(MLPInverter):
         return sorted_pop[0], sorted_pop[1]
 
     def __roulette_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
-        ga_logger.info("Unimplemented __roulette_selection called, calling __random_selection")
-        return self.__random_selection(fitnesses, population)
+        parents=[]
+        for i in range(2):
+            max = sum(fitnesses)
+            pick = np.random.uniform(0, max)
+            current = 0
+            for index, individual in enumerate(population):
+                current += fitnesses[index]
+                if current > pick:
+                    parents.append(individual)
+        return parents
 
     def __sort_by_fitness(self, fitnesses: np.ndarray, population: List[np.ndarray]):
         sorted_fitnesses, sorted_population = zip(*sorted(zip(fitnesses, population), key=lambda x: x[0]))
