@@ -5,8 +5,18 @@ from sklearn.neural_network import MLPRegressor
 
 from inversion.GAMLPInverter import GAMLPInverter
 
+class CrossoverTests(unittest.TestCase):
 
-class MyTestCase(unittest.TestCase):
+    def test__one_point_crossover(self):
+        self.fail('Not implemented yet!')
+
+    def test__multi_point_crossover(self):
+        self.fail('Not implemented yet!')
+
+    def test__arithmetic_crossover(self):
+        self.fail('Not implemented yet!')
+
+class GeneticAlgorithmTests(unittest.TestCase):
 
     def test_init_ga_popullation(self):
         population_size = 20
@@ -17,8 +27,9 @@ class MyTestCase(unittest.TestCase):
         regressor.fit(X, y)
         inverter = GAMLPInverter(regressor, population_size=population_size)
         initial_population = inverter._init_ga_population()
-
         self.assertEqual(initial_population.shape, (population_size, individual_size))
+
+class InversionTests(unittest.TestCase):
 
     def test_init_invert(self):
         population_size = 20
@@ -48,6 +59,7 @@ class MyTestCase(unittest.TestCase):
         print("True y value:" ,true_y)
         inverted_values=inverter.invert([true_y])
         print("Predicted y values based on the inverted values:\n", regressor.predict(inverted_values))
+
 
 
 
