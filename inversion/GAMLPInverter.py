@@ -43,7 +43,7 @@ class GAMLPInverter(MLPInverter):
         self.max_generations = max_generations
 
         if crossover_strategy is None or crossover_strategy == "arithmetic":
-            self.crossover_strategy = self.arithmetic_crossover
+            self.crossover_strategy = self.__arithmetic_crossover
         elif crossover_strategy == "one":
             self.crossover_strategy = self.__one_point_crossover
         elif crossover_strategy == "multi":
@@ -127,7 +127,7 @@ class GAMLPInverter(MLPInverter):
                 offspring.append(parent_2[index])
         return offspring
 
-    def arithmetic_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray):
+    def __arithmetic_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray):
         return list((np.array(parent_1) + np.array(parent_2)) / 2)
 
     # General mutation strategies do not apply to regressor inversion!
