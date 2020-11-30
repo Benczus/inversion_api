@@ -3,7 +3,7 @@ from typing import Tuple, List, Union, Any
 import numpy as np
 from sklearn.neural_network import MLPRegressor
 
-from inversion.MLPInverter import MLPInverter, ga_logger
+from inversion.MLPInverter import MLPInverter
 
 LOWER_BOUNDS = 0
 UPPER_BOUNDS = 1
@@ -78,6 +78,7 @@ class GAMLPInverter(MLPInverter):
         :param desired_output: The y value to be inverted
         :return: inverted values of self.regressor's desired output
         '''
+        self.logger.info("GAMLPInverter.invert started")
         population = self._init_ga_population()
         for _ in range(self.max_generations):
             fitness_values = [self.__fitness(individual, desired_output) for individual in population]
@@ -89,11 +90,13 @@ class GAMLPInverter(MLPInverter):
                 crossed_mutated_offsprings.append(self.__mutate(self.__crossover(parents[0], parents[1])))
             population = [*elites, *crossed_mutated_offsprings]
         fitness_values, population = self.__sort_by_fitness(fitness_values, population)
+        self.logger.debug("population: ",population)
+        self.logger.info("GAMLPInverter.invert stopped")
         return population
 
     def _init_ga_population(self) -> np.ndarray:
-        ga_logger.info("Started generate_individual method")
-        ga_logger.info("Done generate_individual method")
+        self.logger.info("Started generate_individual method")
+
         # return [[x := (randint(self.bounds[LOWER_BOUNDS][0], self.bounds[UPPER_BOUNDS][0])),
         #          y := randint(self.bounds[LOWER_BOUNDS][1], self.bounds[UPPER_BOUNDS][1]),
         #          z := randint(self.bounds[LOWER_BOUNDS][2], self.bounds[UPPER_BOUNDS][2]),
@@ -102,12 +105,19 @@ class GAMLPInverter(MLPInverter):
         #          *calculate_spherical_coordinates(x, y, z)]
         #         for _ in np.arange(self.population_size)
         #         ]
-        return np.array([
+        initial_pop=np.array([
             [np.random.uniform(self.bounds[LOWER_BOUNDS][i], self.bounds[UPPER_BOUNDS][i])
              for i in np.arange(self.regressor.coefs_[0].shape[0])]
             for p in np.arange(self.population_size)])
+        self.logger.info("Done generate_individual method")
+        return initial_pop
 
     def __crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> Union[list, Any]:
+        #TODO: logger cannot log self.crossover_strategy.__name__
+        self.logger.info("Crossover started: "
+                         #,self.crossover_strategy.__name__
+                         )
+
         return self.crossover_strategy(parent_1, parent_2)
 
     def __one_point_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> List[np.ndarray]:
@@ -132,6 +142,7 @@ class GAMLPInverter(MLPInverter):
 
     # General mutation strategies do not apply to regressor inversion!
     def __mutate(self, individual: np.ndarray, strategy=None) -> np.ndarray:
+        self.logger.info("Mutate started")
         if strategy is None:
             for index, element in enumerate(individual):
                 if np.random.random() < self.mutation_rate:
@@ -142,6 +153,10 @@ class GAMLPInverter(MLPInverter):
 
     def __selection(self, fitnesses: np.ndarray, population: List[np.ndarray], strategy=None) -> Tuple[
         np.ndarray, np.ndarray]:
+        # TODO: logger cannot log self.selection.__name__
+        self.logger.info("Selection started: "
+        # , self.selection_strategy.__name__
+         )
         return self.selection_strategy(fitnesses, population)
 
     def __random_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
@@ -174,6 +189,7 @@ class GAMLPInverter(MLPInverter):
         return parents
 
     def __sort_by_fitness(self, fitnesses: np.ndarray, population: List[np.ndarray]):
+        self.logger.info("Sorting by fitness")
         sorted_fitnesses, sorted_population = zip(*sorted(zip(fitnesses, population), key=lambda x: x[0]))
         return sorted_fitnesses, sorted_population
 

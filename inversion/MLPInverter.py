@@ -14,10 +14,7 @@ BOUNDS_NEGATIVE_INFINITY = -1e5
 BOUNDS_POSITIVE_INFINITY = 1e5
 
 current_datetime = datetime.now()
-ga_logger = setup_logger('ga_invert',
-                         "log/ga_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
-                                                         current_datetime.day,
-                                                         current_datetime.hour))
+
 
 
 class MLPInverter:
@@ -27,6 +24,10 @@ class MLPInverter:
     def __init__(self, regressor: MLPRegressor, bounds: Tuple[np.ndarray, np.ndarray] = None):
         self.regressor = regressor
         INPUT_LAYER_SIZE = regressor.coefs_[0].shape[0]
+        self.logger = setup_logger('ga_invert',
+                                 "log/ga_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
+                                                                 current_datetime.day,
+                                                                 current_datetime.hour))
         if (bounds is None or
                 len(bounds) != 2 or
                 len(bounds[LOWER_BOUNDS]) != INPUT_LAYER_SIZE or
