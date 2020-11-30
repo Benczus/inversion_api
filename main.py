@@ -6,10 +6,10 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error, r2_score
 
-from inversion.WiFiRSSIPropagation import WifiRSSIPropagation
+from inversion import WifiRSSIPropagation
 from inversion.ann_training import create_WiFiRSSIPropagation_list
 from inversion.util.inversion_util import get_possible_inputs, average_xy_positions
-from util import util
+import util
 
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
@@ -41,67 +41,68 @@ def __ann_generation(df_list, target_list, scaler_list, demo_mode, clean_run=Tru
 
 
 def __inversion(selected_features, df_list, target_list, df_list_unscaled, wifi_rssi_list, demo_mode, clean_run=True):
-    inverted_positions_list = []
-    error_list = []
-    CXPB, MUTPB, NGEN = 0.5, 0.1, 1000
-    DESIRED_OUTPUT = -80
-    OUTPUT_TOLERANCE = 2
-    if demo_mode:
-    #NORMAL INVERSION
-        if clean_run:
-            output_list = get_possible_inputs(list_of_inputs, wifi_rssi_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN,
-                                              DESIRED_OUTPUT, OUTPUT_TOLERANCE, target_list, demo_mode)
-            with open("model/invertedpos_list", "wb") as fp:
-                pickle.dump(output_list, fp)
-
-        with open("model/invertedpos_list", "rb") as fp:
-            inverted_positions_list = pickle.load(fp)
-        actual_coordinates=[] #TODO
-        predicted_cooridnates = np.array(average_xy_positions(inverted_positions_list[0]))
-        error_list.append((mean_squared_error(predicted_cooridnates, actual_coordinates),
-                       r2_score(predicted_cooridnates, actual_coordinates)))
-
-    else:
-    #INVERSION BY TIME
-        if clean_run:
-            list_of_inputs = util.create_inputs_by_index(selected_features, df_list_unscaled)
-            with open("model/input_lists", "wb") as fp:
-                pickle.dump(list_of_inputs, fp)
-
-        with open("model/input_lists", "rb") as fp:
-            list_of_inputs = pickle.load(fp)
-
-        logger.info("list of inputs: {}".format(list_of_inputs))
-        if clean_run:
-            actual_coordinates = util.create_coordiantes_by_index(selected_features)
-            with open("model/actual_coords", "wb") as fp:
-                pickle.dump(actual_coordinates, fp)
-
-        with open("model/actual_coords", "rb") as fp:
-            actual_coordinates = pickle.load(fp)
-
-        logger.info("Actual coordinates: {}".format(actual_coordinates))
-        if clean_run:
-            output_list = get_possible_inputs(list_of_inputs, wifi_rssi_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN,
-                                              DESIRED_OUTPUT, OUTPUT_TOLERANCE, target_list, demo_mode)
-            with open("model/invertedpos_list", "wb") as fp:
-                pickle.dump(output_list, fp)
-
-        with open("model/invertedpos_list", "rb") as fp:
-            inverted_positions_list = pickle.load(fp)
-
-        if clean_run:
-            for inverted_positions in inverted_positions_list:
-                predicted_cooridnates = np.array(average_xy_positions(inverted_positions))
-                error_list.append((mean_squared_error(predicted_cooridnates, actual_coordinates),
-                                   r2_score(predicted_cooridnates, actual_coordinates)))
-            with open("model/error_list", "wb") as fp:
-                pickle.dump(error_list, fp)
-
-        with open("model/error_list", "rb") as fp:
-            error_list = pickle.load(fp)
-
-    return error_list, inverted_positions_list
+    # inverted_positions_list = []
+    # error_list = []
+    # CXPB, MUTPB, NGEN = 0.5, 0.1, 1000
+    # DESIRED_OUTPUT = -80
+    # OUTPUT_TOLERANCE = 2
+    # if demo_mode:
+    # #NORMAL INVERSION
+    #     if clean_run:
+    #         output_list = get_possible_inputs(list_of_inputs, wifi_rssi_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN,
+    #                                           DESIRED_OUTPUT, OUTPUT_TOLERANCE, target_list, demo_mode)
+    #         with open("model/invertedpos_list", "wb") as fp:
+    #             pickle.dump(output_list, fp)
+    #
+    #     with open("model/invertedpos_list", "rb") as fp:
+    #         inverted_positions_list = pickle.load(fp)
+    #     actual_coordinates=[] #TODO
+    #     predicted_cooridnates = np.array(average_xy_positions(inverted_positions_list[0]))
+    #     error_list.append((mean_squared_error(predicted_cooridnates, actual_coordinates),
+    #                    r2_score(predicted_cooridnates, actual_coordinates)))
+    #
+    # else:
+    # #INVERSION BY TIME
+    #     if clean_run:
+    #         list_of_inputs = util.create_inputs_by_index(selected_features, df_list_unscaled)
+    #         with open("model/input_lists", "wb") as fp:
+    #             pickle.dump(list_of_inputs, fp)
+    #
+    #     with open("model/input_lists", "rb") as fp:
+    #         list_of_inputs = pickle.load(fp)
+    #
+    #     logger.info("list of inputs: {}".format(list_of_inputs))
+    #     if clean_run:
+    #         actual_coordinates = util.create_coordiantes_by_index(selected_features)
+    #         with open("model/actual_coords", "wb") as fp:
+    #             pickle.dump(actual_coordinates, fp)
+    #
+    #     with open("model/actual_coords", "rb") as fp:
+    #         actual_coordinates = pickle.load(fp)
+    #
+    #     logger.info("Actual coordinates: {}".format(actual_coordinates))
+    #     if clean_run:
+    #         output_list = get_possible_inputs(list_of_inputs, wifi_rssi_list, df_list, df_list_unscaled, CXPB, MUTPB, NGEN,
+    #                                           DESIRED_OUTPUT, OUTPUT_TOLERANCE, target_list, demo_mode)
+    #         with open("model/invertedpos_list", "wb") as fp:
+    #             pickle.dump(output_list, fp)
+    #
+    #     with open("model/invertedpos_list", "rb") as fp:
+    #         inverted_positions_list = pickle.load(fp)
+    #
+    #     if clean_run:
+    #         for inverted_positions in inverted_positions_list:
+    #             predicted_cooridnates = np.array(average_xy_positions(inverted_positions))
+    #             error_list.append((mean_squared_error(predicted_cooridnates, actual_coordinates),
+    #                                r2_score(predicted_cooridnates, actual_coordinates)))
+    #         with open("model/error_list", "wb") as fp:
+    #             pickle.dump(error_list, fp)
+    #
+    #     with open("model/error_list", "rb") as fp:
+    #         error_list = pickle.load(fp)
+    #
+    # return error_list, inverted_positions_list
+    return
 
 
 def main():

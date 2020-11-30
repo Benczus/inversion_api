@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 from sklearn.neural_network import MLPRegressor
 
-from inversion.GAMLPInverter import GAMLPInverter
+from inversion import GAMLPInverter
 
 
 
