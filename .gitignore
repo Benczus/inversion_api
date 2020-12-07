@@ -6,3 +6,4 @@
 ./model/ann_models/*
 ./data/before*
 ./data/after*
+/log/

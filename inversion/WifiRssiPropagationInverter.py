@@ -1,4 +1,5 @@
-from inversion import WiFiRSSIPropagation, GAMLPInverter
+from inversion import GAMLPInverter
+from model import WiFiRSSIPropagation
 
 
 class WifiRssiPropagationInverter(GAMLPInverter):
