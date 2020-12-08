@@ -5,7 +5,7 @@ from typing import Tuple
 
 import numpy as np
 from sklearn.neural_network import MLPRegressor
-from util.util import setup_logger
+from inversion.util.inversion_util import setup_logger
 
 LOWER_BOUNDS = 0
 UPPER_BOUNDS = 1

@@ -6,85 +6,66 @@ from sklearn.neural_network import MLPRegressor
 from inversion import GAMLPInverter
 
 
+def init_default_test_inverter():
+    population_size = 50
+    individual_size = 8
+    max_generaton = 100
+    seed = 42
+    np.random.seed(42)
+    X = np.floor(np.random.random((population_size, individual_size)) * 10)
+    y = [np.mean(line) ** 2 for line in X]
+    regressor = MLPRegressor(random_state=seed)
+    regressor.fit(X, y)
+    inverter = GAMLPInverter(regressor, population_size=population_size, max_generations=max_generaton,
+                             crossover_strategy="uniform",
+                             bounds=(X.max(axis=0), X.min(axis=0)))
+    return inverter
+
+
 class CrossoverTests(unittest.TestCase):
 
-    def test__one_point_crossover(self):
-        population_size = 50
-        individual_size = 8
-        max_generaton = 100
-        seed = 42
-        np.random.seed(42)
-        X = np.floor(np.random.random((population_size, individual_size)) * 10)
-        y = [np.mean(line) ** 2 for line in X]
-        regressor = MLPRegressor(random_state=seed)
-        regressor.fit(X, y)
-        inverter = GAMLPInverter(regressor,
-                                 population_size=population_size,
-                                 max_generations=max_generaton,
-                                 crossover_strategy="one",
-                                 bounds=(X.max(axis=0), X.min(axis=0)))
-        true_y = np.mean([n for n in range(1, 9)]) ** 2
-        inverted = inverter.invert([true_y])
-        print("Inverted inputs: ", inverted)
-        print(np.array(inverted).shape)
+    def test__one_point_crossover_assert(self):
+
+        parent1 = np.array([1,2,3,4])
+        parent2 = np.array([5,6,7,8])
+        expected = np.array([1,2,7,8])
+        inverter = init_default_test_inverter()
+        # when
+        actual = inverter._GAMLPInverter__one_point_crossover(parent1,parent2)
+        # then
+        np.testing.assert_allclose(actual,expected)
 
     def test__multi_point_crossover(self):
-        population_size = 50
-        individual_size = 8
-        max_generaton = 100
-        seed = 42
-        np.random.seed(42)
-        X = np.floor(np.random.random((population_size, individual_size)) * 10)
-        y = [np.mean(line) ** 2 for line in X]
-        regressor = MLPRegressor(random_state=seed)
-        regressor.fit(X, y)
-        inverter = GAMLPInverter(regressor,
-                                 population_size=population_size,
-                                 max_generations=max_generaton,
-                                 crossover_strategy="multi",
-                                 bounds=(X.max(axis=0), X.min(axis=0)))
-        true_y = np.mean([n for n in range(1, 9)]) ** 2
-        inverted = inverter.invert([true_y])
-        print("Inverted inputs: ", inverted)
-        print(np.array(inverted).shape)
+        parent1 = np.array([1, 2, 3, 4, 5, 6])
+        parent2 = np.array([5, 6, 7, 8, 9, 10])
+        expected = np.array([1,2,7,8,5,6])
+        inverter = init_default_test_inverter()
+        # when
+        actual = inverter._GAMLPInverter__multi_point_crossover(parent1, parent2)
+        # then
+        np.testing.assert_allclose(actual, expected)
 
     def test__uniform_crossover(self):
-        population_size = 50
-        individual_size = 8
-        max_generaton = 100
-        seed = 42
-        np.random.seed(42)
-        X = np.floor(np.random.random((population_size, individual_size)) * 10)
-        y = [np.mean(line) ** 2 for line in X]
-        regressor = MLPRegressor(random_state=seed)
-        regressor.fit(X, y)
-        inverter = GAMLPInverter(regressor, population_size=population_size, max_generations=max_generaton,
-                                 crossover_strategy="uniform",
-                                 bounds=(X.max(axis=0), X.min(axis=0)))
-        true_y = np.mean([n for n in range(1, 9)]) ** 2
-        inverted = inverter.invert([true_y])
-        print("Inverted inputs: ", inverted)
-        print(np.array(inverted).shape)
+        parent1 = np.array([1, 2, 3, 4, 5, 6])
+        parent2 = np.array([5, 6, 7, 8, 9, 10])
+        #seeded random uniform array
+        expected = np.array([5, 2, 3, 4, 9, 6])
+        inverter = init_default_test_inverter()
+        # when
+        actual = inverter._GAMLPInverter__uniform_crossover(parent1, parent2)
+        # then
+        np.testing.assert_allclose(actual, expected)
 
     def test__arithmetic_crossover(self):
-        population_size = 50
-        individual_size = 8
-        max_generaton = 100
-        seed = 42
-        np.random.seed(42)
-        X = np.floor(np.random.random((population_size, individual_size)) * 10)
-        y = [np.mean(line) ** 2 for line in X]
-        regressor = MLPRegressor(random_state=seed)
-        regressor.fit(X, y)
-        inverter = GAMLPInverter(regressor,
-                                 population_size=population_size,
-                                 max_generations=max_generaton,
-                                 crossover_strategy="arithmetic",
-                                 bounds=(X.max(axis=0), X.min(axis=0)))
-        true_y = np.mean([n for n in range(1, 9)]) ** 2
-        inverted = inverter.invert([true_y])
-        print("Inverted inputs: ", inverted)
-        print(np.array(inverted).shape)
+        parent1 = np.array([1, 2, 3, 4, 5, 6])
+        parent2 = np.array([5, 6, 7, 8, 9, 10])
+        # seeded random uniform array
+        expected = np.array([3, 4, 5, 6, 7, 8])
+        inverter = init_default_test_inverter()
+        # when
+        actual = inverter._GAMLPInverter__arithmetic_crossover(parent1, parent2)
+        # then
+        np.testing.assert_allclose(actual, expected)
 
 
 class SelectionTests(unittest.TestCase):

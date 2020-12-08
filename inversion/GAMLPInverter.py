@@ -152,7 +152,7 @@ class GAMLPInverter(MLPInverter):
         np.ndarray, np.ndarray]:
         return self.selection_strategy(fitnesses, population)
 
-    def __random_selection(self, population: List[np.ndarray]):
+    def __random_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
         return population[np.random.randint(0, len(population[0]) - 1)], population[
             np.random.randint(0, len(population[0]) - 1)]
 
