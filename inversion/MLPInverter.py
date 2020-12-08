@@ -5,7 +5,6 @@ from typing import Tuple
 
 import numpy as np
 from sklearn.neural_network import MLPRegressor
-
 from util.util import setup_logger
 
 LOWER_BOUNDS = 0
@@ -16,7 +15,6 @@ BOUNDS_POSITIVE_INFINITY = 1e5
 current_datetime = datetime.now()
 
 
-
 class MLPInverter:
     regressor: MLPRegressor
     bounds: Tuple[np.ndarray, np.ndarray]
@@ -25,15 +23,15 @@ class MLPInverter:
         self.regressor = regressor
         INPUT_LAYER_SIZE = regressor.coefs_[0].shape[0]
         self.logger = setup_logger('ga_invert',
-                                 "log/ga_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
-                                                                 current_datetime.day,
-                                                                 current_datetime.hour))
+                                   "log/ga_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
+                                                                   current_datetime.day,
+                                                                   current_datetime.hour))
         if (bounds is None or
                 len(bounds) != 2 or
                 len(bounds[LOWER_BOUNDS]) != INPUT_LAYER_SIZE or
                 len(bounds[UPPER_BOUNDS]) != INPUT_LAYER_SIZE):
             self.bounds = (
-                np.full(INPUT_LAYER_SIZE, BOUNDS_NEGATIVE_INFINITY ),
+                np.full(INPUT_LAYER_SIZE, BOUNDS_NEGATIVE_INFINITY),
                 np.full(INPUT_LAYER_SIZE, BOUNDS_POSITIVE_INFINITY)
             )
         else:

@@ -1,5 +1,5 @@
-from model import  WiFiRSSIPropagation
+from model import WiFiRSSIPropagation
 
-__all__=[
+__all__ = [
     "WiFiRSSIPropagation"
 ]
