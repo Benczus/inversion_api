@@ -81,16 +81,18 @@ class GAMLPInverter(MLPInverter):
         self.logger.info("GAMLPInverter.invert started")
         population = self._init_ga_population()
         for _ in range(self.max_generations):
-            fitness_values = [self.__fitness(individual, desired_output) for individual in population]
+            fitness_values = [self.__fitness(individual, desired_output)
+                              for individual in population]
             sorted_fitnesses, sorted_offsprings = self.__sort_by_fitness(fitness_values, population)
             elites = sorted_offsprings[0:self.elite_count]
             crossed_mutated_offsprings = []
-            for i in range(self.population_size - self.elite_count):
-                parents = self.__selection(sorted_fitnesses, sorted_offsprings, strategy=self.__rank_selection)
-                crossed_mutated_offsprings.append(self.__mutate(self.__crossover(parents[0], parents[1])))
+            for _ in range(self.population_size - self.elite_count):
+                parents = self.__selection(sorted_fitnesses, sorted_offsprings)
+                crossed_mutated_offsprings.append(self.__mutate(
+                    self.__crossover(parents[0], parents[1])))
             population = [*elites, *crossed_mutated_offsprings]
         fitness_values, population = self.__sort_by_fitness(fitness_values, population)
-        self.logger.debug("population: ",population)
+        self.logger.debug("population: ", population)
         self.logger.info("GAMLPInverter.invert stopped")
         return population
 
@@ -105,7 +107,7 @@ class GAMLPInverter(MLPInverter):
         #          *calculate_spherical_coordinates(x, y, z)]
         #         for _ in np.arange(self.population_size)
         #         ]
-        initial_pop=np.array([
+        initial_pop = np.array([
             [np.random.uniform(self.bounds[LOWER_BOUNDS][i], self.bounds[UPPER_BOUNDS][i])
              for i in np.arange(self.regressor.coefs_[0].shape[0])]
             for p in np.arange(self.population_size)])
@@ -113,11 +115,6 @@ class GAMLPInverter(MLPInverter):
         return initial_pop
 
     def __crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> Union[list, Any]:
-        #TODO: logger cannot log self.crossover_strategy.__name__
-        self.logger.info("Crossover started: "
-                         #,self.crossover_strategy.__name__
-                         )
-
         return self.crossover_strategy(parent_1, parent_2)
 
     def __one_point_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> List[np.ndarray]:
@@ -148,23 +145,19 @@ class GAMLPInverter(MLPInverter):
                 if np.random.random() < self.mutation_rate:
                     individual[index] = element * np.random.uniform(0.8, 1.2)
             return individual
-        else:
-            return strategy(individual)
 
-    def __selection(self, fitnesses: np.ndarray, population: List[np.ndarray], strategy=None) -> Tuple[
+        return strategy(individual)
+
+    def __selection(self, fitnesses: np.ndarray, population: List[np.ndarray]) -> Tuple[
         np.ndarray, np.ndarray]:
-        # TODO: logger cannot log self.selection.__name__
-        self.logger.info("Selection started: "
-        # , self.selection_strategy.__name__
-         )
         return self.selection_strategy(fitnesses, population)
 
-    def __random_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
-        return population[np.random.randint(0,len(population[0])-1)], population[
-            np.random.randint(0,len(population[0])-1)]
+    def __random_selection(self, population: List[np.ndarray]):
+        return population[np.random.randint(0, len(population[0]) - 1)], population[
+            np.random.randint(0, len(population[0]) - 1)]
 
     def __rank_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
-        sorted_fitnesses, sorted_population = self.__sort_by_fitness(fitnesses, population)
+        _, sorted_population = self.__sort_by_fitness(fitnesses, population)
         return sorted_population[0], sorted_population[1]
 
     def __tournament_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
@@ -173,14 +166,14 @@ class GAMLPInverter(MLPInverter):
         for index in indexes:
             fit_ind.append(fitnesses[index])
             pop_ind.append((population[index]))
-        sorted_fit, sorted_pop = self.__sort_by_fitness(fit_ind, pop_ind)
+        _, sorted_pop = self.__sort_by_fitness(fit_ind, pop_ind)
         return sorted_pop[0], sorted_pop[1]
 
     def __roulette_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
-        parents=[]
-        for i in range(2):
-            max = sum(fitnesses)
-            pick = np.random.uniform(0, max)
+        parents = []
+        for _ in range(2):
+            max_selected = sum(fitnesses)
+            pick = np.random.uniform(0, max_selected)
             current = 0
             for index, individual in enumerate(population):
                 current += fitnesses[index]

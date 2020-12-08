@@ -6,7 +6,6 @@ from sklearn.neural_network import MLPRegressor
 from inversion import GAMLPInverter
 
 
-
 class CrossoverTests(unittest.TestCase):
 
     def test__one_point_crossover(self):
@@ -19,12 +18,14 @@ class CrossoverTests(unittest.TestCase):
         y = [np.mean(line) ** 2 for line in X]
         regressor = MLPRegressor(random_state=seed)
         regressor.fit(X, y)
-        inverter = GAMLPInverter(regressor, population_size=population_size, max_generations=max_generaton,
+        inverter = GAMLPInverter(regressor,
+                                 population_size=population_size,
+                                 max_generations=max_generaton,
                                  crossover_strategy="one",
                                  bounds=(X.max(axis=0), X.min(axis=0)))
         true_y = np.mean([n for n in range(1, 9)]) ** 2
-        inverted= inverter.invert([true_y])
-        print("Inverted inputs: ", inverted )
+        inverted = inverter.invert([true_y])
+        print("Inverted inputs: ", inverted)
         print(np.array(inverted).shape)
 
     def test__multi_point_crossover(self):
@@ -37,12 +38,14 @@ class CrossoverTests(unittest.TestCase):
         y = [np.mean(line) ** 2 for line in X]
         regressor = MLPRegressor(random_state=seed)
         regressor.fit(X, y)
-        inverter = GAMLPInverter(regressor, population_size=population_size, max_generations=max_generaton,
+        inverter = GAMLPInverter(regressor,
+                                 population_size=population_size,
+                                 max_generations=max_generaton,
                                  crossover_strategy="multi",
                                  bounds=(X.max(axis=0), X.min(axis=0)))
         true_y = np.mean([n for n in range(1, 9)]) ** 2
-        inverted= inverter.invert([true_y])
-        print("Inverted inputs: ", inverted )
+        inverted = inverter.invert([true_y])
+        print("Inverted inputs: ", inverted)
         print(np.array(inverted).shape)
 
     def test__uniform_crossover(self):
@@ -59,10 +62,9 @@ class CrossoverTests(unittest.TestCase):
                                  crossover_strategy="uniform",
                                  bounds=(X.max(axis=0), X.min(axis=0)))
         true_y = np.mean([n for n in range(1, 9)]) ** 2
-        inverted= inverter.invert([true_y])
-        print("Inverted inputs: ", inverted )
+        inverted = inverter.invert([true_y])
+        print("Inverted inputs: ", inverted)
         print(np.array(inverted).shape)
-
 
     def test__arithmetic_crossover(self):
         population_size = 50
@@ -74,13 +76,16 @@ class CrossoverTests(unittest.TestCase):
         y = [np.mean(line) ** 2 for line in X]
         regressor = MLPRegressor(random_state=seed)
         regressor.fit(X, y)
-        inverter = GAMLPInverter(regressor, population_size=population_size, max_generations=max_generaton,
+        inverter = GAMLPInverter(regressor,
+                                 population_size=population_size,
+                                 max_generations=max_generaton,
                                  crossover_strategy="arithmetic",
                                  bounds=(X.max(axis=0), X.min(axis=0)))
         true_y = np.mean([n for n in range(1, 9)]) ** 2
         inverted = inverter.invert([true_y])
         print("Inverted inputs: ", inverted)
         print(np.array(inverted).shape)
+
 
 class SelectionTests(unittest.TestCase):
 
@@ -94,12 +99,14 @@ class SelectionTests(unittest.TestCase):
         y = [np.mean(line) ** 2 for line in X]
         regressor = MLPRegressor(random_state=seed)
         regressor.fit(X, y)
-        inverter = GAMLPInverter(regressor, population_size=population_size, max_generations=max_generaton,
+        inverter = GAMLPInverter(regressor,
+                                 population_size=population_size,
+                                 max_generations=max_generaton,
                                  selection_strategy="random",
                                  bounds=(X.max(axis=0), X.min(axis=0)))
         true_y = np.mean([n for n in range(1, 9)]) ** 2
-        inverted= inverter.invert([true_y])
-        print("Inverted inputs: ", inverted )
+        inverted = inverter.invert([true_y])
+        print("Inverted inputs: ", inverted)
         print(np.array(inverted).shape)
 
     def test__rank_selection(self):
@@ -112,12 +119,14 @@ class SelectionTests(unittest.TestCase):
         y = [np.mean(line) ** 2 for line in X]
         regressor = MLPRegressor(random_state=seed)
         regressor.fit(X, y)
-        inverter = GAMLPInverter(regressor, population_size=population_size, max_generations=max_generaton,
+        inverter = GAMLPInverter(regressor,
+                                 population_size=population_size,
+                                 max_generations=max_generaton,
                                  selection_strategy="rank",
                                  bounds=(X.max(axis=0), X.min(axis=0)))
         true_y = np.mean([n for n in range(1, 9)]) ** 2
-        inverted= inverter.invert([true_y])
-        print("Inverted inputs: ", inverted )
+        inverted = inverter.invert([true_y])
+        print("Inverted inputs: ", inverted)
         print(np.array(inverted).shape)
 
     def test__tournament_selection(self):
@@ -130,14 +139,15 @@ class SelectionTests(unittest.TestCase):
         y = [np.mean(line) ** 2 for line in X]
         regressor = MLPRegressor(random_state=seed)
         regressor.fit(X, y)
-        inverter = GAMLPInverter(regressor, population_size=population_size, max_generations=max_generaton,
+        inverter = GAMLPInverter(regressor,
+                                 population_size=population_size,
+                                 max_generations=max_generaton,
                                  selection_strategy="tournament",
                                  bounds=(X.max(axis=0), X.min(axis=0)))
         true_y = np.mean([n for n in range(1, 9)]) ** 2
         inverted = inverter.invert([true_y])
         print("Inverted inputs: ", inverted)
         print(np.array(inverted).shape)
-
 
     def test__roulette_selection(self):
         population_size = 50
@@ -149,13 +159,16 @@ class SelectionTests(unittest.TestCase):
         y = [np.mean(line) ** 2 for line in X]
         regressor = MLPRegressor(random_state=seed)
         regressor.fit(X, y)
-        inverter = GAMLPInverter(regressor, population_size=population_size, max_generations=max_generaton,
+        inverter = GAMLPInverter(regressor,
+                                 population_size=population_size,
+                                 max_generations=max_generaton,
                                  selection_strategy="roulette",
                                  bounds=(X.max(axis=0), X.min(axis=0)))
         true_y = np.mean([n for n in range(1, 9)]) ** 2
         inverted = inverter.invert([true_y])
         print("Inverted inputs: ", inverted)
         print(np.array(inverted).shape)
+
 
 class GeneticAlgorithmTests(unittest.TestCase):
 
@@ -197,8 +210,8 @@ class InversionTests(unittest.TestCase):
         inverter = GAMLPInverter(regressor, population_size=population_size, max_generations=max_generaton,
                                  bounds=(X.max(axis=0), X.min(axis=0)))
         true_y = np.mean([n for n in range(1, 9)]) ** 2
-        inverted= inverter.invert([true_y])
-        print("Inverted inputs: ", inverted )
+        inverted = inverter.invert([true_y])
+        print("Inverted inputs: ", inverted)
         print(np.array(inverted).shape)
         print("True y value:", true_y)
         print("Predicted y values based on the inverted values:\n", regressor.predict(inverted))
