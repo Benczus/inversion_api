@@ -1,4 +1,4 @@
-from pandas import np
+import numpy as np
 from sklearn.neural_network import MLPRegressor
 
 from inversion import GAMLPInverter

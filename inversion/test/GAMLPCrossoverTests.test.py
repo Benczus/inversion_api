@@ -1,6 +1,6 @@
 import unittest
 
-from pandas import np
+import numpy as np
 
 from inversion.test.setup import init_default_test_inverter
 
@@ -48,3 +48,6 @@ class CrossoverTests(unittest.TestCase):
         actual = inverter._GAMLPInverter__arithmetic_crossover(parent1, parent2)
         # then
         np.testing.assert_allclose(actual, expected)
+
+if __name__ == '__main__':
+    unittest.main()

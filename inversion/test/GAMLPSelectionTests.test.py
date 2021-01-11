@@ -1,6 +1,5 @@
 import unittest
-
-from pandas import np
+import numpy as np
 from sklearn.neural_network import MLPRegressor
 
 from inversion import GAMLPInverter
@@ -79,3 +78,6 @@ class SelectionTests(unittest.TestCase):
         inverted = inverter.invert([true_y])
         print("Inverted inputs: ", inverted)
         print(np.array(inverted).shape)
+
+if __name__ == '__main__':
+    unittest.main()
