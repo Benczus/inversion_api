@@ -92,7 +92,7 @@ class GAMLPInverter(MLPInverter):
                     self.__crossover(parents[0], parents[1])))
             population = [*elites, *crossed_mutated_offsprings]
         fitness_values, population = self.__sort_by_fitness(fitness_values, population)
-        self.logger.debug("population: ", population)
+        # self.logger.debug("population: ", population)
         self.logger.info("GAMLPInverter.invert stopped")
         return population
 
