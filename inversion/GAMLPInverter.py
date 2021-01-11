@@ -153,8 +153,8 @@ class GAMLPInverter(MLPInverter):
         return self.selection_strategy(fitnesses, population)
 
     def __random_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
-        return population[np.random.randint(0, len(population[0]) - 1)], population[
-            np.random.randint(0, len(population[0]) - 1)]
+        return population[np.random.randint(0, len(population) - 1)], population[
+            np.random.randint(0, len(population) - 1)]
 
     def __rank_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
         _, sorted_population = self.__sort_by_fitness(fitnesses, population)
@@ -170,15 +170,19 @@ class GAMLPInverter(MLPInverter):
         return sorted_pop[0], sorted_pop[1]
 
     def __roulette_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
-        parents = []
-        for _ in range(2):
+        parents = [0,0]
+        for i in range(2):
             max_selected = sum(fitnesses)
             pick = np.random.uniform(0, max_selected)
-            current = 0
+            current = max_selected
+            print(current)
             for index, individual in enumerate(population):
-                current += fitnesses[index]
-                if current > pick:
-                    parents.append(individual)
+                current -= fitnesses[index]
+                print(current, pick)
+                if current < pick:
+                    parents[i]=individual
+                    pick=current
+                    break
         return parents
 
     def __sort_by_fitness(self, fitnesses: np.ndarray, population: List[np.ndarray]):
