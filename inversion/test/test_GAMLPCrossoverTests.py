@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from inversion.test.setup import init_default_test_inverter
+from inversion.test.inverter_init_test import init_default_test_inverter
 
 
 class CrossoverTests(unittest.TestCase):

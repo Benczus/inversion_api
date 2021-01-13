@@ -1,9 +1,7 @@
 import unittest
 import numpy as np
-from sklearn.neural_network import MLPRegressor
 
-from inversion import GAMLPInverter
-from inversion.test.setup import init_default_test_inverter
+from inversion.test.inverter_init_test import init_default_test_inverter
 
 
 class SelectionTests(unittest.TestCase):
