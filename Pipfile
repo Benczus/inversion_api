@@ -13,6 +13,7 @@ deap = "*"
 matplotlib = "*"
 sklearn_export = "*"
 pylint = "*"
+coverage = "*"
 
 [requires]
 python_version = "3.8"
