@@ -27,9 +27,6 @@ def check_inverted_y(inverted_y_list, true_y):
     for inverted_y in inverted_y_list:
       if np.isclose(inverted_y, true_y, 0.018):
             actual_elements+=1
-    print(actual_elements)
-    print(n)
-    print(actual_elements/n)
     if (actual_elements/n)>0.8:
         return True
     else:
@@ -46,13 +43,8 @@ class InversionTests(unittest.TestCase):
         inverter, regressor=init_default_test_inverter()
         true_y = np.mean([n for n in range(1, 9)]) ** 2
         inverted = inverter.invert([true_y])
-        print(inverted)
-        print(true_y)
         inverted_y= regressor.predict(inverted)
-        print(inverted_y)
-
         self.assertEqual(check_inverted_y(inverted_y, true_y), True)
-        print("Predicted y values based on the inverted values:\n", regressor.predict(inverted))
 
 
 if __name__ == '__main__':
