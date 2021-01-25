@@ -17,6 +17,7 @@ class SelectionTests(unittest.TestCase):
         np.testing.assert_allclose(actual, expected)
 
     def test__rank_selection(self):
+        # given
         parent = [np.array([1, 2, 3, 4, 5, 6]), np.array([7, 8, 9, 10, 11, 12]), np.array([13, 14, 15, 16, 17, 18 ])]
         # seeded random uniform array
         expected = [np.array([1, 2, 3, 4, 5, 6]), np.array([13, 14, 15, 16, 17, 18 ])]
@@ -27,6 +28,7 @@ class SelectionTests(unittest.TestCase):
         np.testing.assert_allclose(actual, expected)
 
     def test__tournament_selection(self):
+        #given
         parent = [np.array([0, 0, 0, 0, 0, 0]), np.array([1, 2, 3, 4, 5, 6]), np.array([7, 8, 9, 10, 11, 12]), np.array([13, 14, 15, 16, 17, 18 ])]
         # seeded random uniform array
         expected = [np.array([0, 0, 0, 0, 0, 0]), np.array([0, 0, 0, 0, 0, 0])]
@@ -37,6 +39,7 @@ class SelectionTests(unittest.TestCase):
         np.testing.assert_allclose(actual, expected)
 
     def test__roulette_selection(self):
+        # given
         parent = [np.array([0, 0, 0, 0, 0, 0]), np.array([1, 2, 3, 4, 5, 6]), np.array([7, 8, 9, 10, 11, 12]), np.array([13, 14, 15, 16, 17, 18 ])]
         # seeded random uniform array
         expected = [np.array([13, 14, 15, 16, 17, 18 ]), np.array([1, 2, 3, 4, 5, 6])]

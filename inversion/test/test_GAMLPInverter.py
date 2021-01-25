@@ -27,23 +27,25 @@ def check_inverted_y(inverted_y_list, true_y):
     for inverted_y in inverted_y_list:
       if np.isclose(inverted_y, true_y, 0.018):
             actual_elements+=1
-    if (actual_elements/n)>0.8:
-        return True
-    else:
-        return False
+    return (actual_elements/n)>0.8
 
 
 class InversionTests(unittest.TestCase):
 
     def test_init_invert(self):
+        # given, when
         inverter, _ = init_default_test_inverter()
+        # then
         self.assertIsInstance(inverter, GAMLPInverter)
 
     def test_seeded_inversion_exp(self):
+        # given
         inverter, regressor=init_default_test_inverter()
         true_y = np.mean([n for n in range(1, 9)]) ** 2
         inverted = inverter.invert([true_y])
+        # when
         inverted_y= regressor.predict(inverted)
+        # then
         self.assertEqual(check_inverted_y(inverted_y, true_y), True)
 
 
