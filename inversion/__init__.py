@@ -17,10 +17,10 @@ logger.setLevel(logging.DEBUG)
 if not os.path.exists('log'):
     os.makedirs('log')
 current_datetime = datetime.now()
-fh = logging.FileHandler("log", "log/util_{}_{}_{}_{}.log".format(current_datetime.year,
+fh = logging.FileHandler("log/{}_{}_{}_{}.log".format(current_datetime.year,
                                                                   current_datetime.month,
                                                                   current_datetime.day,
-                                                                  current_datetime.hour))
+                                                                  current_datetime.hour) )
 fh.setLevel(logging.DEBUG)
 # create console handler with a higher log level
 ch = logging.StreamHandler()
