@@ -53,5 +53,6 @@ class CrossoverTests(unittest.TestCase):
         # then
         np.testing.assert_allclose(actual, expected)
 
+
 if __name__ == '__main__':
     unittest.main()
