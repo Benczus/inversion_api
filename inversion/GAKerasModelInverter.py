@@ -1,15 +1,15 @@
 from typing import Tuple, List, Union, Any
 
 import numpy as np
-from sklearn.neural_network import MLPRegressor
-from inversion.KerasModelInverter import KerasModelInverter
 from tensorflow.python.keras import Model
+
+from inversion.KerasModelInverter import KerasModelInverter
 
 LOWER_BOUNDS = 0
 UPPER_BOUNDS = 1
 
 
-class GAMLPInverter(KerasModelInverter):
+class GAKerasModelInverter(KerasModelInverter):
     '''
     Inverter class for a single Wi-Fi Access Point
     '''
