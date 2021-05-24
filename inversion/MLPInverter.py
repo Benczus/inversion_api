@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import Callable
 from typing import List
@@ -5,7 +6,6 @@ from typing import Tuple
 
 import numpy as np
 from sklearn.neural_network import MLPRegressor
-from inversion.util.inversion_util import setup_logger
 
 LOWER_BOUNDS = 0
 UPPER_BOUNDS = 1
@@ -22,10 +22,7 @@ class MLPInverter:
     def __init__(self, regressor: MLPRegressor, bounds: Tuple[np.ndarray, np.ndarray] = None):
         self.regressor = regressor
         INPUT_LAYER_SIZE = regressor.coefs_[0].shape[0]
-        self.logger = setup_logger('ga_invert',
-                                   "log/ga_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
-                                                                   current_datetime.day,
-                                                                   current_datetime.hour))
+        self.logger = logging.getLogger("logger")
         if (bounds is None or
                 len(bounds) != 2 or
                 len(bounds[LOWER_BOUNDS]) != INPUT_LAYER_SIZE or

@@ -22,12 +22,12 @@ class GeneticAlgorithmTests(unittest.TestCase):
 
 
 def check_inverted_y(inverted_y_list, true_y):
-    n=len(inverted_y_list)
-    actual_elements=0
+    n = len(inverted_y_list)
+    actual_elements = 0
     for inverted_y in inverted_y_list:
-      if np.isclose(inverted_y, true_y, 0.018):
-            actual_elements+=1
-    return (actual_elements/n)>0.8
+        if np.isclose(inverted_y, true_y, 0.018):
+            actual_elements += 1
+    return (actual_elements / n) > 0.8
 
 
 class InversionTests(unittest.TestCase):
@@ -40,11 +40,11 @@ class InversionTests(unittest.TestCase):
 
     def test_seeded_inversion_exp(self):
         # given
-        inverter, regressor=init_default_test_inverter()
+        inverter, regressor = init_default_test_inverter()
         true_y = np.mean([n for n in range(1, 9)]) ** 2
         inverted = inverter.invert([true_y])
         # when
-        inverted_y= regressor.predict(inverted)
+        inverted_y = regressor.predict(inverted)
         # then
         self.assertEqual(check_inverted_y(inverted_y, true_y), True)
 

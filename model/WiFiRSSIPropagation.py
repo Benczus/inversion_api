@@ -1,14 +1,11 @@
+import logging
 import pickle
 from datetime import datetime
 
 from sklearn.neural_network import MLPRegressor
-from inversion.util.inversion_util import setup_logger
 
 current_datetime = datetime.now()
-ann_logger = setup_logger('ga_invert',
-                          "log/ga_{}_{}_{}_{}.log".format(current_datetime.year, current_datetime.month,
-                                                          current_datetime.day,
-                                                          current_datetime.hour))
+ann_logger = logging.getLogger("logger")
 
 
 class WifiRSSIPropagation():

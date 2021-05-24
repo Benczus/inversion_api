@@ -170,7 +170,7 @@ class GAMLPInverter(MLPInverter):
         return sorted_pop[0], sorted_pop[1]
 
     def __roulette_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
-        parents = [0,0]
+        parents = [0, 0]
         for i in range(2):
             max_selected = sum(fitnesses)
             pick = np.random.uniform(0, max_selected)
@@ -180,8 +180,8 @@ class GAMLPInverter(MLPInverter):
                 current -= fitnesses[index]
                 print(current, pick)
                 if current < pick:
-                    parents[i]=individual
-                    pick=current
+                    parents[i] = individual
+                    pick = current
                     break
         return parents
 
