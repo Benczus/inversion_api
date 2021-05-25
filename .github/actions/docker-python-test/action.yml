@@ -2,4 +2,4 @@ name: 'Python Unit Test'
 description: 'Install dependencies from Pipfile and test the Python Source'
 runs:
   using: 'docker'
-  image: 'Dockerfile'
+  image: '../../../Dockerfile'
