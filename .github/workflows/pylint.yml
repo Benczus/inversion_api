@@ -1,0 +1,21 @@
+name: Intelligent Service Quality Gate
+
+on:
+  push:
+    branches:
+      - '*'
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Check Python Style with pylint
+      uses: ./.github/actions/docker-pylint
+      with:
+       src-path: './inversion/'
+#       min-score: 9.5 # default threshold is 8 for this action
+#       production ready code should have 9-9.5 threshold
+#       default threshold is student friendly
