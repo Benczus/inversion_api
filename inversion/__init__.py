@@ -8,7 +8,8 @@ from inversion.WifiRssiPropagationInverter import WifiRssiPropagationInverter
 
 __all__ = [
     'GAMLPInverter',
-    'MLPInverter'
+    'MLPInverter',
+    'WLKMLPInverter'
 ]
 
 logger = logging.getLogger("logger")
