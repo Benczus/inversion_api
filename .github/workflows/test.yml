@@ -24,6 +24,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pipenv
         pipenv install
+        python -m unittest discover inversion/
     - name: Test with pytest
       run: |
         python -m unittest discover inversion/
