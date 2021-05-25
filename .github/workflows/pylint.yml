@@ -1,4 +1,4 @@
-name: Intelligent Service Quality Gate
+name: PyLint Style Checker
 
 on:
   push:
