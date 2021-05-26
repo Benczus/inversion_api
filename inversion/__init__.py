@@ -5,6 +5,7 @@ from datetime import datetime
 from inversion.GAMLPInverter import GAMLPInverter
 from inversion.MLPInverter import MLPInverter
 from inversion.WifiRssiPropagationInverter import WifiRssiPropagationInverter
+from inversion.WLKMLPInverter import WLKMLPInverter
 
 __all__ = [
     'GAMLPInverter',
