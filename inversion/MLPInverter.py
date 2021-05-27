@@ -23,10 +23,10 @@ class MLPInverter:
         self.regressor = regressor
         INPUT_LAYER_SIZE = regressor.coefs_[0].shape[0]
         self.logger = logging.getLogger("logger")
-        if (bounds is None or
-                len(bounds) != 2 or
-                len(bounds[LOWER_BOUNDS]) != INPUT_LAYER_SIZE or
-                len(bounds[UPPER_BOUNDS]) != INPUT_LAYER_SIZE):
+        if bounds is None or\
+                len(bounds) != 2 or\
+                len(bounds[LOWER_BOUNDS]) != INPUT_LAYER_SIZE or\
+                len(bounds[UPPER_BOUNDS]) != INPUT_LAYER_SIZE:
             self.bounds = (
                 np.full(INPUT_LAYER_SIZE, BOUNDS_NEGATIVE_INFINITY),
                 np.full(INPUT_LAYER_SIZE, BOUNDS_POSITIVE_INFINITY)
