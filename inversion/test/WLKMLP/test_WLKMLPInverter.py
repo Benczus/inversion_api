@@ -2,23 +2,23 @@ import unittest
 
 import numpy as np
 from sklearn.neural_network import MLPRegressor
+from WLKMLP.inverter_WLK_init_test import init_default_test_WLK_inverter
 
-from inversion import GAMLPInverter
-from inversion.test.inverter_init_test import init_default_test_inverter
+from inversion import GAMLPInverter, WLKMLPInverter
 
 
 class GeneticAlgorithmTests(unittest.TestCase):
-
-    def test_init_ga_popullation(self):
-        population_size = 20
-        individual_size = 8
-        X = np.floor(np.random.random((individual_size, individual_size)) * 10)
+    def test_init_WLK(self):
+        input_size = 25
+        X = np.floor(np.random.random((input_size, input_size)) * 10)
         y = [[np.sum(x), np.mean(x)] for x in X]
+
         regressor = MLPRegressor()
         regressor.fit(X, y)
-        inverter = GAMLPInverter(regressor, population_size=population_size)
-        initial_population = inverter._init_ga_population()
-        self.assertEqual(initial_population.shape, (population_size, individual_size))
+        inverter = WLKMLPInverter(
+            input_size=input_size, step_size=10, regressor=regressor
+        )
+        inverter.invert(y)
 
 
 def check_inverted_y(inverted_y_list, true_y):
@@ -31,16 +31,15 @@ def check_inverted_y(inverted_y_list, true_y):
 
 
 class InversionTests(unittest.TestCase):
-
     def test_init_invert(self):
         # given, when
-        inverter, _ = init_default_test_inverter()
+        inverter, _ = init_default_test_WLK_inverter()
         # then
         self.assertIsInstance(inverter, GAMLPInverter)
 
     def test_seeded_inversion_exp(self):
         # given
-        inverter, regressor = init_default_test_inverter()
+        inverter, regressor = init_default_test_WLK_inverter()
         true_y = np.mean([n for n in range(1, 9)]) ** 2
         inverted = inverter.invert([true_y])
         # when
@@ -49,5 +48,5 @@ class InversionTests(unittest.TestCase):
         self.assertEqual(check_inverted_y(inverted_y, true_y), True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

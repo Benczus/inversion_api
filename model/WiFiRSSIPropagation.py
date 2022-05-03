@@ -8,7 +8,7 @@ current_datetime = datetime.now()
 ann_logger = logging.getLogger("logger")
 
 
-class WifiRSSIPropagation():
+class WifiRSSIPropagation:
     name: str
     model: MLPRegressor
     scaler: None
@@ -22,7 +22,9 @@ class WifiRSSIPropagation():
     @staticmethod
     def load_by_name(name):
         ann_logger.info("Instantiated GA_Inverter method")
-        (model, scaler) = WifiRSSIPropagation.load_model("model/ann_models/{}".format(name))
+        (model, scaler) = WifiRSSIPropagation.load_model(
+            "model/ann_models/{}".format(name)
+        )
         return WifiRSSIPropagation(name, model, scaler)
 
     @staticmethod
@@ -31,6 +33,6 @@ class WifiRSSIPropagation():
             return pickle.load(fp)
 
     @staticmethod
-    def save_model(filepath, wifirssiprop):
+    def save_model(filepath, wifi_rssi_prop):
         with open(filepath, "wb") as fp:
-            pickle.dump((wifirssiprop.model, wifirssiprop.scaler), fp)
+            pickle.dump((wifi_rssi_prop.model, wifi_rssi_prop.scaler), fp)
