@@ -55,7 +55,7 @@ class WLKMLPInverter(MLPInverter):
                 )
             try:
                 self.regressor._forward_pass(activations)
-                inplace_derivative = DERIVATIVES[self.activation]
+                inplace_derivative = DERIVATIVES[self.regressor.activation]
                 y_pred = activations[-1]
                 deltas = activations.copy()
                 deltas[-1] = self._activationFunctionDerivate(

@@ -7,7 +7,7 @@ from WLKMLP.inverter_WLK_init_test import init_default_test_WLK_inverter
 from inversion import GAMLPInverter, WLKMLPInverter
 
 
-class GeneticAlgorithmTests(unittest.TestCase):
+class WLKAlgorithmTests(unittest.TestCase):
     def test_init_WLK(self):
         input_size = 25
         X = np.floor(np.random.random((input_size, input_size)) * 10)

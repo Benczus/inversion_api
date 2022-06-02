@@ -1,4 +1,4 @@
-from typing import Tuple, List, Union, Any
+from typing import Any, List, Tuple, Union
 
 import numpy as np
 from sklearn.neural_network import MLPRegressor
@@ -10,24 +10,27 @@ UPPER_BOUNDS = 1
 
 
 class GAMLPInverter(MLPInverter):
-    '''
+    """
     Inverter class for a single Wi-Fi Access Point
-    '''
+    """
+
     population_size: int
     elite_count: int
     mutation_rate: float
     max_generations: int
 
-    def __init__(self,
-                 regressor: MLPRegressor,
-                 bounds: Tuple[np.ndarray, np.ndarray] = None,
-                 population_size: int = 100,
-                 elite_count: int = 10,
-                 mutation_rate: float = 0.1,
-                 max_generations: int = int(1e4),
-                 crossover_strategy=None,
-                 selection_strategy=None):
-        '''
+    def __init__(
+        self,
+        regressor: MLPRegressor,
+        bounds: Tuple[np.ndarray, np.ndarray] = None,
+        population_size: int = 100,
+        elite_count: int = 10,
+        mutation_rate: float = 0.1,
+        max_generations: int = int(1e4),
+        crossover_strategy=None,
+        selection_strategy=None,
+    ):
+        """
 
         :param regressor: The invertible neural network structure
         :param bounds: valid bounds of individual generation used during the invertion
@@ -35,7 +38,7 @@ class GAMLPInverter(MLPInverter):
         :param elite_count: number of elites, default= 10
         :param mutation_rate: Rate of mutation in individuals
         :param max_generations: maximum number of generations of individuals
-        '''
+        """
         super().__init__(regressor, bounds)
         self.population_size = population_size
         self.elite_count = elite_count
@@ -60,9 +63,8 @@ class GAMLPInverter(MLPInverter):
         elif selection_strategy == "tournament":
             self.selection_strategy = self.__tournament_selection
 
-    def invert(self,
-               desired_output: np.ndarray) -> List[np.ndarray]:
-        '''
+    def invert(self, desired_output: np.ndarray) -> List[np.ndarray]:
+        """
         Algorithm:
         1. INITIAL FITNESS GENERATION
         2. CYCLE GENERATE NEW GENERATION UNTIL REACHING GENERATION N
@@ -77,19 +79,23 @@ class GAMLPInverter(MLPInverter):
         . AFTER GENERATION N, THE OUTPUTS ARE IN THE LAST POPULATION
         :param desired_output: The y value to be inverted
         :return: inverted values of self.regressor's desired output
-        '''
+        """
         self.logger.info("GAMLPInverter.invert started")
         population = self._init_ga_population()
         for _ in range(self.max_generations):
-            fitness_values = [self.__fitness(individual, desired_output)
-                              for individual in population]
-            sorted_fitnesses, sorted_offsprings = self.__sort_by_fitness(fitness_values, population)
-            elites = sorted_offsprings[0:self.elite_count]
+            fitness_values = [
+                self.__fitness(individual, desired_output) for individual in population
+            ]
+            sorted_fitnesses, sorted_offsprings = self.__sort_by_fitness(
+                fitness_values, population
+            )
+            elites = sorted_offsprings[0 : self.elite_count]
             crossed_mutated_offsprings = []
             for _ in range(self.population_size - self.elite_count):
                 parents = self.__selection(sorted_fitnesses, sorted_offsprings)
-                crossed_mutated_offsprings.append(self.__mutate(
-                    self.__crossover(parents[0], parents[1])))
+                crossed_mutated_offsprings.append(
+                    self.__mutate(self.__crossover(parents[0], parents[1]))
+                )
             population = [*elites, *crossed_mutated_offsprings]
         fitness_values, population = self.__sort_by_fitness(fitness_values, population)
         # self.logger.debug("population: ", population)
@@ -107,23 +113,42 @@ class GAMLPInverter(MLPInverter):
         #          *calculate_spherical_coordinates(x, y, z)]
         #         for _ in np.arange(self.population_size)
         #         ]
-        initial_pop = np.array([
-            [np.random.uniform(self.bounds[LOWER_BOUNDS][i], self.bounds[UPPER_BOUNDS][i])
-             for i in np.arange(self.regressor.coefs_[0].shape[0])]
-            for p in np.arange(self.population_size)])
+        initial_pop = np.array(
+            [
+                [
+                    np.random.uniform(
+                        self.bounds[LOWER_BOUNDS][i], self.bounds[UPPER_BOUNDS][i]
+                    )
+                    for i in np.arange(self.regressor.coefs_[0].shape[0])
+                ]
+                for p in np.arange(self.population_size)
+            ]
+        )
         self.logger.info("Done generate_individual method")
         return initial_pop
 
-    def __crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> Union[list, Any]:
+    def __crossover(
+        self, parent_1: np.ndarray, parent_2: np.ndarray
+    ) -> Union[list, Any]:
         return self.crossover_strategy(parent_1, parent_2)
 
-    def __one_point_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray) -> List[np.ndarray]:
-        return list(np.append(parent_1[:len(parent_1) // 2], parent_2[len(parent_2) // 2:]))
+    def __one_point_crossover(
+        self, parent_1: np.ndarray, parent_2: np.ndarray
+    ) -> List[np.ndarray]:
+        return list(
+            np.append(parent_1[: len(parent_1) // 2], parent_2[len(parent_2) // 2 :])
+        )
 
     def __multi_point_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray):
-        return list(np.append(np.append(parent_1[:len(parent_1) // 3],
-                                        parent_2[len(parent_2) // 3:(len(parent_2) // 3) * 2]),
-                              parent_1[(len(parent_1) // 3) * 2:]))
+        return list(
+            np.append(
+                np.append(
+                    parent_1[: len(parent_1) // 3],
+                    parent_2[len(parent_2) // 3 : (len(parent_2) // 3) * 2],
+                ),
+                parent_1[(len(parent_1) // 3) * 2 :],
+            )
+        )
 
     def __uniform_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray):
         offspring = []
@@ -148,19 +173,24 @@ class GAMLPInverter(MLPInverter):
 
         return strategy(individual)
 
-    def __selection(self, fitnesses: np.ndarray, population: List[np.ndarray]) -> Tuple[
-        np.ndarray, np.ndarray]:
+    def __selection(
+        self, fitnesses: np.ndarray, population: List[np.ndarray]
+    ) -> Tuple[np.ndarray, np.ndarray]:
         return self.selection_strategy(fitnesses, population)
 
     def __random_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
-        return population[np.random.randint(0, len(population) - 1)], population[
-            np.random.randint(0, len(population) - 1)]
+        return (
+            population[np.random.randint(0, len(population) - 1)],
+            population[np.random.randint(0, len(population) - 1)],
+        )
 
     def __rank_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
         _, sorted_population = self.__sort_by_fitness(fitnesses, population)
         return sorted_population[0], sorted_population[1]
 
-    def __tournament_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
+    def __tournament_selection(
+        self, fitnesses: np.ndarray, population: List[np.ndarray]
+    ):
         indexes = [np.random.randint(0, len(population) - 1) for i in range(5)]
         fit_ind, pop_ind = [], []
         for index in indexes:
@@ -187,10 +217,12 @@ class GAMLPInverter(MLPInverter):
 
     def __sort_by_fitness(self, fitnesses: np.ndarray, population: List[np.ndarray]):
         self.logger.info("Sorting by fitness")
-        sorted_fitnesses, sorted_population = zip(*sorted(zip(fitnesses, population), key=lambda x: x[0]))
+        sorted_fitnesses, sorted_population = zip(
+            *sorted(zip(fitnesses, population), key=lambda x: x[0])
+        )
         return sorted_fitnesses, sorted_population
 
     def __fitness(self, individual: np.ndarray, desired_output: np.ndarray) -> float:
-        return float(np.sum(
-            (self.regressor.predict([individual])
-             - desired_output) ** 2))
+        return float(
+            np.sum((self.regressor.predict([individual]) - desired_output) ** 2)
+        )

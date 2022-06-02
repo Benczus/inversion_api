@@ -19,5 +19,7 @@ def average_xy_positions(inverted_positions, selected_features):
     gen_x_coord = pd.Series(gen_x_coord)
     gen_y_coord = pd.Series(gen_y_coord)
     pred_util_logger.info("Done predict_coordinates method")
-    return (pd.np.average(gen_x_coord[gen_x_coord < np.max(selected_features["pos_x"])]),
-            np.average(gen_y_coord[gen_y_coord < np.max(selected_features["pos_y"])]))
+    return (
+        pd.np.average(gen_x_coord[gen_x_coord < np.max(selected_features["pos_x"])]),
+        np.average(gen_y_coord[gen_y_coord < np.max(selected_features["pos_y"])]),
+    )
