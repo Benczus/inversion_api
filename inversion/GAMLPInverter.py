@@ -86,7 +86,7 @@ class GAMLPInverter(MLPInverter):
         if early_stopping:
             early_values = [0, []]
             i=0
-            while (i in range(self.max_generations)) or (early_values[0]<=early_stopping_num):
+            while (i in range(self.max_generations)) and (early_values[0]<=early_stopping_num):
                 fitness_values, population = self.run_generation(desired_output, population)
                 if np.allclose(sorted(early_values[1]), sorted(population), 0.01):
                     early_values[0] +=1
