@@ -48,7 +48,6 @@ class WLKMLPInverter(MLPInverter):
 
         for j in range(0, self.iteration_count):
             activations = [guessedInput]
-
             for i in range(self.regressor.n_layers_ - 1):
                 activations.append(
                     np.empty((guessedInput.shape[0], layer_units[0][i + 1]))
@@ -66,7 +65,7 @@ class WLKMLPInverter(MLPInverter):
                     deltas[-i - 1] = safe_sparse_dot(
                         deltas[-i], self.regressor.coefs_[-i].T
                     )
-                    deltas[-i - 1] = inplace_derivative(activations[i], deltas[i - 1])
+                    inplace_derivative(activations[i])
                     if self.verbose:
                         print("#", i)
                         print(self.regressor.coefs_[-i])

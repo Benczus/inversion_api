@@ -63,7 +63,7 @@ class GAMLPInverter(MLPInverter):
         elif selection_strategy == "tournament":
             self.selection_strategy = self.__tournament_selection
 
-    def invert(self, desired_output: np.ndarray) -> List[np.ndarray]:
+    def invert(self, desired_output: np.ndarray, early_stopping:bool = True, early_stopping_num:int = 5) -> List[np.ndarray]:
         """
         Algorithm:
         1. INITIAL FITNESS GENERATION
@@ -82,25 +82,41 @@ class GAMLPInverter(MLPInverter):
         """
         self.logger.info("GAMLPInverter.invert started")
         population = self._init_ga_population()
-        for _ in range(self.max_generations):
-            fitness_values = [
-                self.__fitness(individual, desired_output) for individual in population
-            ]
-            sorted_fitnesses, sorted_offsprings = self.__sort_by_fitness(
-                fitness_values, population
-            )
-            elites = sorted_offsprings[0 : self.elite_count]
-            crossed_mutated_offsprings = []
-            for _ in range(self.population_size - self.elite_count):
-                parents = self.__selection(sorted_fitnesses, sorted_offsprings)
-                crossed_mutated_offsprings.append(
-                    self.__mutate(self.__crossover(parents[0], parents[1]))
-                )
-            population = [*elites, *crossed_mutated_offsprings]
+
+        if early_stopping:
+            early_values = [0, []]
+            i=0
+            while (i in range(self.max_generations)) or (early_values[0]<=early_stopping_num):
+                fitness_values, population = self.run_generation(desired_output, population)
+                if early_values[1] == population:
+                    early_values[0] +=1
+                else:
+                    early_values[0] = 0
+                    early_values[1] = population
+        else:
+            for _ in range(self.max_generations):
+                fitness_values, population = self.run_generation(desired_output, population)
         fitness_values, population = self.__sort_by_fitness(fitness_values, population)
         # self.logger.debug("population: ", population)
         self.logger.info("GAMLPInverter.invert stopped")
         return population
+
+    def run_generation(self, desired_output, population):
+        fitness_values = [
+            self.__fitness(individual, desired_output) for individual in population
+        ]
+        sorted_fitnesses, sorted_offsprings = self.__sort_by_fitness(
+            fitness_values, population
+        )
+        elites = sorted_offsprings[0: self.elite_count]
+        crossed_mutated_offsprings = []
+        for _ in range(self.population_size - self.elite_count):
+            parents = self.__selection(sorted_fitnesses, sorted_offsprings)
+            crossed_mutated_offsprings.append(
+                self.__mutate(self.__crossover(parents[0], parents[1]))
+            )
+        population = [*elites, *crossed_mutated_offsprings]
+        return fitness_values, population
 
     def _init_ga_population(self) -> np.ndarray:
         self.logger.info("Started generate_individual method")
