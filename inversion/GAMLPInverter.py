@@ -98,7 +98,7 @@ class GAMLPInverter(MLPInverter):
                     desired_output, population
                 )
                 try:
-                    if np.allclose(sorted(early_values[1]), sorted(population), 0.01):
+                    if np.allclose(np.sort(early_values[1]), np.sort(population), 0.01):
                         early_values[0] += 1
                     else:
                         early_values[0] = 0
