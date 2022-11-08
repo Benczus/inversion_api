@@ -97,9 +97,13 @@ class GAMLPInverter(MLPInverter):
                 fitness_values, population = self.run_generation(
                     desired_output, population
                 )
-                if np.allclose(sorted(early_values[1]), sorted(population), 0.01):
-                    early_values[0] += 1
-                else:
+                try:
+                    if np.allclose(sorted(early_values[1]), sorted(population), 0.01):
+                        early_values[0] += 1
+                    else:
+                        early_values[0] = 0
+                        early_values[1] = population
+                except Exception as e:
                     early_values[0] = 0
                     early_values[1] = population
         else:
