@@ -4,7 +4,6 @@ from typing import Callable, List, Tuple
 
 import numpy as np
 from keras import Model
-from sklearn.neural_network import MLPRegressor
 
 LOWER_BOUNDS = 0
 UPPER_BOUNDS = 1

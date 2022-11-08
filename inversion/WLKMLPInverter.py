@@ -2,11 +2,7 @@ from typing import Tuple
 
 import numpy as np
 from sklearn.neural_network import MLPRegressor
-from sklearn.neural_network._base import (DERIVATIVES,
-                                          inplace_identity_derivative,
-                                          inplace_logistic_derivative,
-                                          inplace_relu_derivative,
-                                          inplace_tanh_derivative)
+from sklearn.neural_network._base import DERIVATIVES
 from sklearn.utils.extmath import safe_sparse_dot
 
 from inversion import MLPInverter
@@ -48,6 +44,7 @@ class WLKMLPInverter(MLPInverter):
 
         for j in range(0, self.iteration_count):
             activations = [guessedInput]
+            deltas = []
             for i in range(self.regressor.n_layers_ - 1):
                 activations.append(
                     np.empty((guessedInput.shape[0], layer_units[0][i + 1]))

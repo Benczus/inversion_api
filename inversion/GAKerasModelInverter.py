@@ -1,7 +1,6 @@
 from typing import Any, List, Tuple, Union
 
 import numpy as np
-from sklearn.neural_network import MLPRegressor
 from tensorflow.python.keras import Model
 
 from inversion.KerasModelInverter import KerasModelInverter
@@ -64,7 +63,7 @@ class GAMLPInverter(KerasModelInverter):
         elif selection_strategy == "tournament":
             self.selection_strategy = self.__tournament_selection
 
-    def invert(self, desired_output: np.ndarray) -> List[np.ndarray]:
+    def invert(self, desired_output: List[float]) -> List[np.ndarray]:
         """
         Algorithm:
         1. INITIAL FITNESS GENERATION
@@ -83,6 +82,7 @@ class GAMLPInverter(KerasModelInverter):
         """
         self.logger.info("GAMLPInverter.invert started")
         population = self._init_ga_population()
+        fitness_values = []
         for _ in range(self.max_generations):
             fitness_values = [
                 self.__fitness(individual, desired_output) for individual in population
@@ -122,7 +122,7 @@ class GAMLPInverter(KerasModelInverter):
                     )
                     for i in np.arange(self.regressor.input[0].shape[0])
                 ]
-                for p in np.arange(self.population_size)
+                for _ in np.arange(self.population_size)
             ]
         )
         self.logger.info("Done generate_individual method")
@@ -192,7 +192,7 @@ class GAMLPInverter(KerasModelInverter):
     def __tournament_selection(
         self, fitnesses: np.ndarray, population: List[np.ndarray]
     ):
-        indexes = [np.random.randint(0, len(population) - 1) for i in range(5)]
+        indexes = [np.random.randint(0, len(population) - 1) for _ in range(5)]
         fit_ind, pop_ind = [], []
         for index in indexes:
             fit_ind.append(fitnesses[index])
@@ -212,7 +212,6 @@ class GAMLPInverter(KerasModelInverter):
                 print(current, pick)
                 if current < pick:
                     parents[i] = individual
-                    pick = current
                     break
         return parents
 
