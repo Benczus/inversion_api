@@ -49,7 +49,6 @@ class WLKMLPInverter(MLPInverter):
                 activations.append(
                     np.empty((guessedInput.shape[0], layer_units[0][i + 1]))
                 )
-            try:
                 self.regressor._forward_pass(activations)
                 inplace_derivative = DERIVATIVES[self.regressor.activation]
                 y_pred = activations[-1]
@@ -77,11 +76,7 @@ class WLKMLPInverter(MLPInverter):
                         )
                         print(deltas[-i - 1])
                         print("-------------------")
-            except Exception as e:
-                msg = f"{e}"
-                print(msg)
             guessedInput = guessedInput - self.step_size * deltas[0]
-
         return guessedInput
 
     def _activationFunctionDerivate(self, X, activation):
