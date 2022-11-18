@@ -86,7 +86,7 @@ class GAMLPInverter(MLPInverter):
         :return: inverted values of self.regressor's desired output
         """
         self.logger.info("GAMLPInverter.invert started")
-        population = self._init_ga_population()
+        population = self._init_ga_population(len(desired_output))
         fitness_values = []
         if early_stopping:
             early_values = [0, []]
@@ -133,7 +133,7 @@ class GAMLPInverter(MLPInverter):
         population = [*elites, *crossed_mutated_offsprings]
         return fitness_values, population
 
-    def _init_ga_population(self) -> np.ndarray:
+    def _init_ga_population(self, pop_size:int) -> np.ndarray:
         self.logger.info("Started generate_individual method")
 
         # return [[x := (randint(self.bounds[LOWER_BOUNDS][0], self.bounds[UPPER_BOUNDS][0])),
@@ -152,7 +152,7 @@ class GAMLPInverter(MLPInverter):
                     )
                     for i in np.arange(self.regressor.coefs_[0].shape[0])
                 ]
-                for _ in np.arange(self.population_size)
+                for _ in np.arange(pop_size)
             ]
         )
         self.logger.info("Done generate_individual method")
