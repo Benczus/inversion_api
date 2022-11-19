@@ -89,7 +89,7 @@ class GAMLPInverter(MLPInverter):
         population = self._init_ga_population(len(desired_output))
         fitness_values = []
         if early_stopping:
-            early_values = [0, []]
+            early_values = [0, population]
             i = 0
             while (i in range(self.max_generations)) and (
                 early_values[0] <= early_stopping_num
@@ -102,7 +102,7 @@ class GAMLPInverter(MLPInverter):
                         early_values[0] += 1
                     else:
                         early_values[0] = 0
-                        early_values[1] = population
+                    early_values[1] = population
                 except Exception as e:
                     early_values[0] = 0
                     early_values[1] = population
@@ -125,7 +125,7 @@ class GAMLPInverter(MLPInverter):
         )
         elites = sorted_offsprings[0 : self.elite_count]
         crossed_mutated_offsprings = []
-        for _ in range(self.population_size - self.elite_count):
+        for _ in range(len(desired_output) - self.elite_count):
             parents = self.__selection(sorted_fitnesses, sorted_offsprings)
             crossed_mutated_offsprings.append(
                 self.__mutate(self.__crossover(parents[0], parents[1]))
