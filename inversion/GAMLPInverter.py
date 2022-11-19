@@ -92,7 +92,7 @@ class GAMLPInverter(MLPInverter):
         if early_stopping:
             early_values = [0, population]
             i = 0
-            while (i in range(self.max_generations)) and (
+            while (i in range(self.max_generations)) or (
                 early_values[0] <= early_stopping_num
             ):
                 fitness_values, population = self.run_generation(
@@ -123,7 +123,7 @@ class GAMLPInverter(MLPInverter):
 
     def run_generation(self, desired_output, population):
         fitness_values = [
-            self.__fitness(individual, desired_output) for individual in population
+            self.__fitness(individual, output) for individual, output in zip(population, desired_output)
         ]
         sorted_fitnesses, sorted_offsprings = self.__sort_by_fitness(
             fitness_values, population
