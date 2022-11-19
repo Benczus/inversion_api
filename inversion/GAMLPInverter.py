@@ -68,6 +68,7 @@ class GAMLPInverter(MLPInverter):
         desired_output: np.ndarray,
         early_stopping: bool = True,
         early_stopping_num: int = 5,
+        early_stopping_sensitivity: int = 0.1,
     ) -> List[np.ndarray]:
         """
         Algorithm:
@@ -98,7 +99,11 @@ class GAMLPInverter(MLPInverter):
                     desired_output, population
                 )
                 try:
-                    if np.allclose(np.sort(early_values[1]), np.sort(population), 0.01):
+                    if np.allclose(
+                        np.sort(early_values[1])[: int((len(population) / 2))],
+                        np.sort(population)[: int((len(population) / 2))],
+                        early_stopping_sensitivity,
+                    ):
                         early_values[0] += 1
                     else:
                         early_values[0] = 0
@@ -133,7 +138,7 @@ class GAMLPInverter(MLPInverter):
         population = [*elites, *crossed_mutated_offsprings]
         return fitness_values, population
 
-    def _init_ga_population(self, pop_size:int) -> np.ndarray:
+    def _init_ga_population(self, pop_size: int) -> np.ndarray:
         self.logger.info("Started generate_individual method")
 
         # return [[x := (randint(self.bounds[LOWER_BOUNDS][0], self.bounds[UPPER_BOUNDS][0])),
