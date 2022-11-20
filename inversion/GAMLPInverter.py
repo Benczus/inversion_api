@@ -95,7 +95,8 @@ class GAMLPInverter(MLPInverter):
             while i <= self.max_generations and (
                 early_values[0] <= early_stopping_num
             ):
-                fitness_values, population = self.run_generation(
+                #FOR 2D instead of just passing one, we need a set of inputs and select the best one!
+                fitness_values, population, desired_output = self.run_generation(
                     desired_output, population
                 )
                 try:
@@ -117,7 +118,7 @@ class GAMLPInverter(MLPInverter):
                 fitness_values, population = self.run_generation(
                     desired_output, population
                 )
-        fitness_values, population = self.__sort_by_fitness(fitness_values, population)
+        fitness_values, population, _ = self.__sort_by_fitness(fitness_values, population)
         # self.logger.debug("population: ", population)
         self.logger.info("GAMLPInverter.invert stopped")
         return population
@@ -126,12 +127,12 @@ class GAMLPInverter(MLPInverter):
         fitness_values = [
             self.__fitness(individual, output) for individual, output in zip(population, desired_output)
         ]
-        sorted_fitnesses, sorted_offsprings = self.__sort_by_fitness(
+        sorted_fitnesses, sorted_offsprings, sorted_desired_output = self.__sort_by_fitness(
             fitness_values, population
         )
         elites = sorted_offsprings[0 : self.elite_count]
         crossed_mutated_offsprings = []
-        for _ in range(len(desired_output) - self.elite_count):
+        for _ in range(len(sorted_desired_output) - self.elite_count):
             parents = self.__selection(sorted_fitnesses, sorted_offsprings)
             crossed_mutated_offsprings.append(
                 self.__mutate(self.__crossover(parents[0], parents[1]))
@@ -222,7 +223,7 @@ class GAMLPInverter(MLPInverter):
         )
 
     def __rank_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
-        _, sorted_population = self.__sort_by_fitness(fitnesses, population)
+        _, sorted_population, _ = self.__sort_by_fitness(fitnesses, population)
         return sorted_population[0], sorted_population[1]
 
     def __tournament_selection(
@@ -233,7 +234,7 @@ class GAMLPInverter(MLPInverter):
         for index in indexes:
             fit_ind.append(fitnesses[index])
             pop_ind.append((population[index]))
-        _, sorted_pop = self.__sort_by_fitness(fit_ind, pop_ind)
+        _, sorted_pop, _ = self.__sort_by_fitness(fit_ind, pop_ind)
         return sorted_pop[0], sorted_pop[1]
 
     def __roulette_selection(self, fitnesses: np.ndarray, population: List[np.ndarray]):
@@ -251,12 +252,12 @@ class GAMLPInverter(MLPInverter):
                     break
         return parents
 
-    def __sort_by_fitness(self, fitnesses: np.ndarray, population: List[np.ndarray]):
+    def __sort_by_fitness(self, fitnesses: np.ndarray, population: List[np.ndarray], desired_values):
         self.logger.info("Sorting by fitness")
-        sorted_fitnesses, sorted_population = zip(
-            *sorted(zip(fitnesses, population), key=lambda x: x[0])
+        sorted_fitnesses, sorted_population, sorted_desired_values = zip(
+            *sorted(zip(fitnesses, population, desired_values), key=lambda x: x[0])
         )
-        return sorted_fitnesses, sorted_population
+        return sorted_fitnesses, sorted_population, sorted_desired_values
 
     def __fitness(self, individual: np.ndarray, desired_output: np.ndarray) -> float:
         return float(
