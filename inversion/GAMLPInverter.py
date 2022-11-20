@@ -26,7 +26,7 @@ class GAMLPInverter(MLPInverter):
         population_size: int = 100,
         elite_count: int = 10,
         mutation_rate: float = 0.1,
-        max_generations: int = int(1e4),
+        max_generations: int = 500,
         crossover_strategy=None,
         selection_strategy=None,
     ):
