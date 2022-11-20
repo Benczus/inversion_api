@@ -111,6 +111,7 @@ class GAMLPInverter(MLPInverter):
                 except Exception as e:
                     early_values[0] = 0
                     early_values[1] = population
+                i+=1
         else:
             for _ in range(self.max_generations):
                 fitness_values, population = self.run_generation(
