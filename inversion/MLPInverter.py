@@ -26,7 +26,7 @@ class MLPInverter:
         if (
             bounds is None
             or len(bounds) != 2
-            or len((bounds[LOWER_BOUNDS], bounds[UPPER_BOUNDS])) != INPUT_LAYER_SIZE
+            # or len((bounds[LOWER_BOUNDS], bounds[UPPER_BOUNDS])) != INPUT_LAYER_SIZE
         ):
             self.bounds = (
                 np.full(INPUT_LAYER_SIZE, BOUNDS_NEGATIVE_INFINITY),
