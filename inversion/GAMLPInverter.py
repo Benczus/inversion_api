@@ -21,15 +21,15 @@ class GAMLPInverter(MLPInverter):
     max_generations: int
 
     def __init__(
-            self,
-            regressor: MLPRegressor,
-            bounds: Tuple[np.ndarray, np.ndarray] = None,
-            population_size: int = 100,
-            elite_count: int = 10,
-            mutation_rate: float = 0.1,
-            max_generations: int = 500,
-            crossover_strategy=None,
-            selection_strategy=None,
+        self,
+        regressor: MLPRegressor,
+        bounds: Tuple[np.ndarray, np.ndarray] = None,
+        population_size: int = 100,
+        elite_count: int = 10,
+        mutation_rate: float = 0.1,
+        max_generations: int = 500,
+        crossover_strategy=None,
+        selection_strategy=None,
     ):
         """
 
@@ -65,11 +65,11 @@ class GAMLPInverter(MLPInverter):
             self.selection_strategy = self.__tournament_selection
 
     def invert(
-            self,
-            desired_output: np.ndarray,
-            early_stopping: bool = True,
-            early_stopping_num: int = 5,
-            early_stopping_sensitivity: int = 0.1,
+        self,
+        desired_output: np.ndarray,
+        early_stopping: bool = True,
+        early_stopping_num: int = 5,
+        early_stopping_sensitivity: int = 0.1,
     ) -> List[np.ndarray]:
         """
         Algorithm:
@@ -88,23 +88,24 @@ class GAMLPInverter(MLPInverter):
         :return: inverted values of self.regressor's desired output
         """
         self.logger.info("GAMLPInverter.invert started")
-        population = [self._init_ga_population(len(desired_output)) for a in range(self.population_size)]
+        population = [
+            self._init_ga_population(len(desired_output))
+            for a in range(self.population_size)
+        ]
         fitness_values = []
         if early_stopping:
             early_values = [0, population]
             i = 0
-            while i <= self.max_generations and (
-                    early_values[0] <= early_stopping_num
-            ):
+            while i <= self.max_generations and (early_values[0] <= early_stopping_num):
                 # FOR 2D instead of just passing one, we need a set of inputs and select the best one!
                 fitness_values, population = self.run_generation(
                     desired_output, population
                 )
                 try:
                     if np.allclose(
-                            np.sort(early_values[1])[: int((len(population) / 2))],
-                            np.sort(population)[: int((len(population) / 2))],
-                            early_stopping_sensitivity,
+                        np.sort(early_values[1])[: int((len(population) / 2))],
+                        np.sort(population)[: int((len(population) / 2))],
+                        early_stopping_sensitivity,
                     ):
                         early_values[0] += 1
                     else:
@@ -131,9 +132,9 @@ class GAMLPInverter(MLPInverter):
         sorted_fitnesses, sorted_offsprings = self.__sort_by_fitness(
             fitness_values, population
         )
-        elites = sorted_offsprings[0: self.elite_count]
+        elites = sorted_offsprings[0 : self.elite_count]
         crossed_mutated_offsprings = []
-        for _ in range(len(sorted_offsprings) - self.elite_count- 20):
+        for _ in range(len(sorted_offsprings) - self.elite_count - 20):
             parents = self.__selection(sorted_fitnesses, sorted_offsprings)
             crossed_mutated_offsprings.append(
                 self.__mutate(self.__crossover(parents[0], parents[1]))
@@ -144,25 +145,24 @@ class GAMLPInverter(MLPInverter):
             t = False
             x = crossed_mutated_offsprings.pop()
             for a in range(5):
-                if any(close_vector:=np.isclose(x, new_population, 0.1)):
+                if any(close_vector := np.isclose(x, new_population, 0.1)):
                     for element in close_vector:
                         if element[0][0]:
                             x = self._move_element(element, x)
                             break
                 else:
                     new_population.append(x)
-                    t=True
+                    t = True
                     break
             if not t:
                 new_population.append(self._init_ga_population(len(desired_output)))
         return fitness_values, new_population
 
-    def _move_element(self, p1, p2, epsilon = 1, fi = 1):
+    def _move_element(self, p1, p2, epsilon=1, fi=1):
         v = []
         for element1, element2 in zip(p1, p2):
-            v.append(element1 -element2)
-        return p2  - fi*(epsilon - scipy.spatial.distance.euclidean(p1,p2))*v[0]
-
+            v.append(element1 - element2)
+        return p2 - fi * (epsilon - scipy.spatial.distance.euclidean(p1, p2)) * v[0]
 
     def _init_ga_population(self, pop_size: int) -> np.ndarray:
         self.logger.info("Started generate_individual method")
@@ -190,15 +190,15 @@ class GAMLPInverter(MLPInverter):
         return initial_pop
 
     def __crossover(
-            self, parent_1: np.ndarray, parent_2: np.ndarray
+        self, parent_1: np.ndarray, parent_2: np.ndarray
     ) -> Union[list, Any]:
         return self.crossover_strategy(parent_1, parent_2)
 
     def __one_point_crossover(
-            self, parent_1: np.ndarray, parent_2: np.ndarray
+        self, parent_1: np.ndarray, parent_2: np.ndarray
     ) -> List[np.ndarray]:
         return list(
-            np.append(parent_1[: len(parent_1) // 2], parent_2[len(parent_2) // 2:])
+            np.append(parent_1[: len(parent_1) // 2], parent_2[len(parent_2) // 2 :])
         )
 
     def __multi_point_crossover(self, parent_1: np.ndarray, parent_2: np.ndarray):
@@ -206,9 +206,9 @@ class GAMLPInverter(MLPInverter):
             np.append(
                 np.append(
                     parent_1[: len(parent_1) // 3],
-                    parent_2[len(parent_2) // 3: (len(parent_2) // 3) * 2],
+                    parent_2[len(parent_2) // 3 : (len(parent_2) // 3) * 2],
                 ),
-                parent_1[(len(parent_1) // 3) * 2:],
+                parent_1[(len(parent_1) // 3) * 2 :],
             )
         )
 
@@ -236,7 +236,7 @@ class GAMLPInverter(MLPInverter):
         return strategy(individual)
 
     def __selection(
-            self, fitnesses: np.ndarray, population: List[np.ndarray]
+        self, fitnesses: np.ndarray, population: List[np.ndarray]
     ) -> Tuple[np.ndarray, np.ndarray]:
         return self.selection_strategy(fitnesses, population)
 
@@ -251,7 +251,7 @@ class GAMLPInverter(MLPInverter):
         return sorted_population[0], sorted_population[1]
 
     def __tournament_selection(
-            self, fitnesses: np.ndarray, population: List[np.ndarray]
+        self, fitnesses: np.ndarray, population: List[np.ndarray]
     ):
         indexes = [np.random.randint(0, len(population) - 1) for _ in range(5)]
         fit_ind, pop_ind = [], []
@@ -284,6 +284,4 @@ class GAMLPInverter(MLPInverter):
         return sorted_fitnesses, sorted_population
 
     def __fitness(self, individual: np.ndarray, desired_output: np.ndarray) -> float:
-        return float(
-            np.sum((self.regressor.predict(individual) - desired_output) ** 2)
-        )
+        return float(np.sum((self.regressor.predict(individual) - desired_output) ** 2))
