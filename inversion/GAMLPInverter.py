@@ -1,6 +1,7 @@
 from typing import Any, List, Tuple, Union
 
 import numpy as np
+import scipy
 from sklearn.neural_network import MLPRegressor
 
 from inversion.MLPInverter import MLPInverter
@@ -132,13 +133,36 @@ class GAMLPInverter(MLPInverter):
         )
         elites = sorted_offsprings[0: self.elite_count]
         crossed_mutated_offsprings = []
-        for _ in range(len(sorted_offsprings) - self.elite_count):
+        for _ in range(len(sorted_offsprings) - self.elite_count- 20):
             parents = self.__selection(sorted_fitnesses, sorted_offsprings)
             crossed_mutated_offsprings.append(
                 self.__mutate(self.__crossover(parents[0], parents[1]))
             )
-        population = [*elites, *crossed_mutated_offsprings]
-        return fitness_values, population
+        new_population = [*elites]
+
+        while len(new_population) != 100:
+            t = False
+            x = crossed_mutated_offsprings.pop()
+            for a in range(5):
+                if any(close_vector:=np.isclose(x, new_population, 0.1)):
+                    for element in close_vector:
+                        if element[0][0]:
+                            x = self._move_element(element, x)
+                            break
+                else:
+                    new_population.append(x)
+                    t=True
+                    break
+            if not t:
+                new_population.append(self._init_ga_population(len(desired_output)))
+        return fitness_values, new_population
+
+    def _move_element(self, p1, p2, epsilon = 1, fi = 1):
+        v = []
+        for element1, element2 in zip(p1, p2):
+            v.append(element1 -element2)
+        return p2  - fi*(epsilon - scipy.spatial.distance.euclidean(p1,p2))*v[0]
+
 
     def _init_ga_population(self, pop_size: int) -> np.ndarray:
         self.logger.info("Started generate_individual method")
