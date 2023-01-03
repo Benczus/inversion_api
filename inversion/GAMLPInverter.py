@@ -141,14 +141,14 @@ class GAMLPInverter(MLPInverter):
             )
         new_population = [*elites]
 
-        while len(new_population) != 100:
+        while len(new_population) != 80:
             t = False
             x = crossed_mutated_offsprings.pop()
             for a in range(5):
                 if any(close_vector := np.isclose(x, new_population, 0.1)):
-                    for element in close_vector:
+                    for i, element in enumerate(close_vector):
                         if element[0][0]:
-                            x = self._move_element(element, x)
+                            x = self._move_element(new_population[i], x)
                             break
                 else:
                     new_population.append(x)
@@ -156,13 +156,15 @@ class GAMLPInverter(MLPInverter):
                     break
             if not t:
                 new_population.append(self._init_ga_population(len(desired_output)))
+        while len(new_population) != 100:
+            new_population.append(self._init_ga_population(len(desired_output)))
         return fitness_values, new_population
 
     def _move_element(self, p1, p2, epsilon=1, fi=1):
         v = []
         for element1, element2 in zip(p1, p2):
             v.append(element1 - element2)
-        return p2 - fi * (epsilon - scipy.spatial.distance.euclidean(p1, p2)) * v[0]
+        return p2 - fi * (epsilon - scipy.spatial.distance.euclidean(p1[0], p2[0])) * v[0]
 
     def _init_ga_population(self, pop_size: int) -> np.ndarray:
         self.logger.info("Started generate_individual method")
