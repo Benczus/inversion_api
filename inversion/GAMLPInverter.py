@@ -164,7 +164,9 @@ class GAMLPInverter(MLPInverter):
         v = []
         for element1, element2 in zip(p1, p2):
             v.append(element1 - element2)
-        return p2 - fi * (epsilon - scipy.spatial.distance.euclidean(p1[0], p2[0])) * v[0]
+        return (
+            p2 - fi * (epsilon - scipy.spatial.distance.euclidean(p1[0], p2[0])) * v[0]
+        )
 
     def _init_ga_population(self, pop_size: int) -> np.ndarray:
         self.logger.info("Started generate_individual method")
