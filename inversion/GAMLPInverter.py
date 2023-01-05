@@ -145,7 +145,10 @@ class GAMLPInverter(MLPInverter):
             t = False
             x = crossed_mutated_offsprings.pop()
             for a in range(5):
-                if any(close_vector := np.isclose(x, new_population, 0.1)):
+                if (
+                    any([c.all() for c in np.isclose(x, new_population, 0.1)])
+                    and (close_vector := np.isclose(x, new_population, 0.1)).any()
+                ):
                     for i, element in enumerate(close_vector):
                         if element[0][0]:
                             x = self._move_element(new_population[i], x)
