@@ -13,9 +13,8 @@ pandas = "*"
 scikit-learn = "*"
 deap = "*"
 matplotlib = "*"
-sklearn_export = "*"
 coverage = "*"
 tensorflow = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3.11"
